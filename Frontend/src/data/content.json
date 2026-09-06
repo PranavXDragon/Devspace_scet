@@ -1,0 +1,258 @@
+{
+  "landing": {
+    "hero": {
+      "eyebrow": "BUILD • LEARN • INNOVATE",
+      "titlePart1": "DEV",
+      "titlePart2": "SPACE",
+      "quote": "\"Coding the Future, Today.\"",
+      "description": "Devspace is the official technical club of SCET College, empowering students to learn, build, and innovate through real-world projects, workshops, hackathons, and collaborative learning.",
+      "ctaPrimary": "Explore Events",
+      "ctaSecondary": "Become a Member",
+      "stats": [
+        {
+          "label": "events",
+          "value": "25+",
+          "text": "Technical workshops, hackathons, and coding competitions."
+        },
+        {
+          "label": "members",
+          "value": "500+",
+          "text": "Students learning, building, and growing together."
+        },
+        {
+          "label": "domains",
+          "value": "8+",
+          "text": "Communities across AI, Web, Cloud, Cybersecurity, and more."
+        }
+      ]
+    },
+    "domains": {
+      "eyebrow": "explore // tech_stacks",
+      "titlePart1": "Core",
+      "titlePart2": "Domains",
+      "description": "Choose your specialization. Master the stack and build real-world applications.",
+      "list": [
+        {
+          "title": "Web Development",
+          "description": "Build modern websites and full-stack applications."
+        },
+        {
+          "title": "AI & ML",
+          "description": "Build intelligent systems using modern AI tools."
+        },
+        {
+          "title": "Competitive Programming",
+          "description": "Improve algorithmic thinking and coding interview skills."
+        },
+        {
+          "title": "Cloud Computing",
+          "description": "Deploy scalable applications and learn DevOps."
+        },
+        {
+          "title": "Cyber Security",
+          "description": "Understand security fundamentals and ethical hacking."
+        },
+        {
+          "title": "UI/UX",
+          "description": "Design beautiful and user-friendly products."
+        },
+        {
+          "title": "App Development",
+          "description": "Android, Flutter, React Native."
+        },
+        {
+          "title": "Open Source",
+          "description": "Contribute to real-world projects."
+        }
+      ]
+    },
+    "contactSection": {
+  "eyebrow": "Contact Us",
+  "title": "Get in Touch",
+  "headline": "Have a question or want to connect? We'd love to hear from you.",
+  "description": "Whether you're interested in joining Devspace, collaborating on an event, exploring partnership opportunities, or simply have a query, our team is here to help. Reach out and we'll get back to you as soon as possible.",
+  "ctaPrimary": "Contact Us"
+},
+"partners": {
+      "title": "Organizations We've Worked With",
+      "description": "Building opportunities with organizations that support developers and innovation.",
+      "list": [
+        { "name": "HackIndia", "description": "India's largest developer community and hackathon platform." },
+        { "name": "Unstop", "description": "Empowering students with opportunities, contests and career resources." },
+        { "name": "Hostinger", "description": "Reliable web hosting and online solutions for developers." },
+        { "name": ".xyz", "description": "A modern domain for the next generation of ideas and innovation." }
+      ]
+    },
+    "mission": {
+      "eyebrow": "Our Core Vision",
+      "headline": "Our Mission",
+      "description": "Our mission is to create a thriving community where students transform ideas into real-world solutions. Through mentorship, live projects, hackathons, technical workshops, and competitive programming, we help members develop industry-ready skills, strengthen problem-solving abilities, and build impactful portfolios for internships, placements, and entrepreneurship.",
+      "cta": "Learn About Us"
+    }
+  },
+  "faqs": [
+    {
+      "_id": "faq_1",
+      "question": "Who can join Devspace?",
+      "answer": "Any SCET College student with an interest in technology can join Devspace. Whether you're a beginner or an experienced developer, you'll find opportunities to learn, build, and collaborate.",
+      "isActive": true
+    },
+    {
+      "_id": "faq_2",
+      "question": "What activities does Devspace organize?",
+      "answer": "Devspace organizes hackathons, coding competitions, technical workshops, speaker sessions, open-source initiatives, project collaborations, networking events, and weekly PROPS (Problem Solving) sessions where members practice DSA, competitive programming, interview questions, and collaborative problem-solving.",
+      "isActive": true
+    },
+    {
+      "_id": "faq_3",
+      "question": "Do I need prior coding experience?",
+      "answer": "No. We welcome students of all skill levels. If you're willing to learn and actively participate, our mentors and community will help you grow through practical projects and collaborative learning.",
+      "isActive": true
+    },
+    {
+      "_id": "faq_4",
+      "question": "When are the weekly PROPS sessions held?",
+      "answer": "We conduct a weekly PROPS (Problem Solving) session every Saturday from 4:00 PM to 6:00 PM, where members solve coding problems, strengthen DSA concepts, prepare for coding interviews, and improve their problem-solving skills together.",
+      "isActive": true
+    },
+    {
+      "_id": "faq_5",
+      "question": "Is there a membership fee?",
+      "answer": "Yes. There is a one-time membership fee of ₹50. The entire amount is added to the club fund and is used to organize workshops, hackathons, coding contests, technical events, and other activities for our members.",
+      "isActive": true
+    },
+    {
+      "_id": "faq_6",
+      "question": "What are the benefits of joining Devspace?",
+      "answer": "As a member, you'll work on real-world projects, attend exclusive workshops, participate in hackathons and coding contests, receive mentorship, build a strong portfolio, expand your professional network, and gain practical experience that helps with internships and placements.",
+      "isActive": true
+    }
+  ],
+  "layout": {
+    "ticker": [
+      "HACKATHONS",
+      "OPEN SOURCE",
+      "PIXEL PERFECT",
+      "PROTOCOL DEV",
+      "500+ MEMBERS",
+      "WORKSHOPS",
+      "WEEKLY PROPS",
+      "DSA PRACTICE",
+      "CODE REVIEWS",
+      "WORKSHOPS",
+      "TECH TALKS",
+      "AI & ML",
+      "WEB DEVELOPMENT"
+    ],
+    "footerText": "© 2026 Devspace Collective. All systems nominal.",
+    "nav": [
+      {
+        "label": "ABOUT",
+        "path": "/#about"
+      },
+      {
+        "label": "VISION",
+        "path": "/#vision"
+      },
+      {
+        "label": "DOMAINS",
+        "path": "/#domains"
+      },
+      {
+        "label": "EVENTS",
+        "path": "/events"
+      },
+      {
+        "label": "TEAM",
+        "path": "/team"
+      },
+      {
+        "label": "FAQS",
+        "path": "/#faqs"
+      },
+      {
+        "label": "CONTACT",
+        "path": "/#contact"
+      }
+    ],
+    "socials": [
+      { "name": "GitHub", "url": "https://github.com/QuDevspaceClub" },
+      { "name": "LinkedIn", "url": "https://linkedin.com/company/scetengineering" },
+      { "name": "Instagram", "url": "https://instagram.com/scet_devspace/" }
+    ],
+    "meta": "EST. 2026 — VOL.01",
+    "cta": "JOIN US"
+  },
+  "register": {
+    "eyebrow": "REGISTRATION",
+    "titlePart1": "Join The",
+    "titlePart2": "Club",
+    "description": "Initialize your profile and secure your position in the Devspace network."
+  },
+  "about": {
+    "eyebrow": "Official Technical Club",
+    "title": "Building the Next Generation of Innovators",
+    "description": "Devspace is the official technical club of the Department of Computer Science & Engineering and Computer Applications at SCET College, Roorkee. We empower students to learn, build, innovate, and collaborate through practical, hands-on experiences.",
+    "mission": "Our mission is to create a thriving community where students transform ideas into real-world solutions. Through mentorship, live projects, hackathons, technical workshops, and competitive programming, we help members develop industry-ready skills, strengthen problem-solving abilities, and build impactful portfolios for internships, placements, and entrepreneurship.",
+    "activitiesTitle": "Key Activities & Focus Areas",
+    "activities": [
+      {
+        "title": "Projects & Open Source",
+        "description": "Build real-world applications, contribute to open-source projects, collaborate in teams, and gain practical development experience using modern technologies."
+      },
+      {
+        "title": "Workshops & Weekly PROPS",
+        "description": "Attend expert-led workshops and participate in our weekly PROPS (Problem Solving) sessions focused on DSA, competitive programming, coding interviews, and logical thinking."
+      },
+      {
+        "title": "Hackathons & Technical Events",
+        "description": "Compete in hackathons, coding contests, technical quizzes, project expos, and flagship events like CodeFest to challenge yourself and showcase your skills."
+      }
+    ],
+    "contact": "Join our community, attend our events, or reach out at contact@example.com. Follow us on Instagram @scet_devspace for the latest updates."
+  },
+  "contact": {
+    "eyebrow": "GET IN TOUCH",
+    "titlePart1": "Contact",
+    "titlePart2": "Us",
+    "description": "Have a question or want to collaborate? Send us a message and we'll get back to you.",
+    "email": "contact@example.com",
+    "instagram": "@devspaceclub"
+  },
+  "error": {
+    "defaultMessage": "Something went wrong!",
+    "buttonText": "Return to Base"
+  },
+  "eventsHero": {
+    "badge": "// All Events",
+    "title": {
+      "line1": "Build. Learn.",
+      "highlight": "Connect."
+    },
+    "description": "From hackathons to hands-on workshops, join experiences that push boundaries and build the future.",
+
+    "cards": [
+      {
+        "id": 1,
+        "title": "Hackathon",
+        "subtitle": "Build • Break • Innovate",
+        "image": "hackathon",
+        "className": "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-[22rem] z-30"
+      },
+      {
+        "id": 2,
+        "title": "Coding Contest",
+        "subtitle": "Competitive Programming",
+        "image": "contest",
+        "className": "absolute top-1/2 left-[10%] -translate-y-1/2 -rotate-12 w-56 h-72 z-10 opacity-80 scale-90"
+      },
+      {
+        "id": 3,
+        "title": "Webinar",
+        "subtitle": "Learn from Experts",
+        "image": "webinar",
+        "className": "absolute top-1/2 right-[10%] -translate-y-1/2 rotate-12 w-56 h-72 z-20 opacity-80 scale-90"
+      }
+    ]
+  }
+}

@@ -1,0 +1,843 @@
+openapi: 3.0.0
+info:
+  title: CodeX API
+  version: 1.0.0
+  description: REST API for the CodeX Coding Club — manages student registrations, events, team members, certificates, and admin operations.
+  contact:
+    name: CodeX Team
+    email: codex@qucodexclub.com
+servers:
+  - url: /api/v1
+    description: API v1
+tags:
+  - name: Healthcheck
+    description: Server health status
+  - name: Admin
+    description: Admin authentication & profile management
+  - name: Students
+    description: Public student registration
+  - name: Registrations
+    description: Admin — manage student registrations
+  - name: Events
+    description: Event management (public read, admin write)
+  - name: Team
+    description: Team member management (public read, admin write)
+  - name: Certificates
+    description: Certificate generation & verification
+  - name: Boarding Passes
+    description: Boarding pass generation & verification
+  - name: Contact
+    description: Contact form (public submit, admin manage)
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: JWT token set via cookie after admin login + OTP verification
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        data:
+          type: object
+        message:
+          type: string
+        success:
+          type: boolean
+    StudentRegistration:
+      type: object
+      required:
+        - name
+        - fatherName
+        - course
+        - year
+        - semester
+        - section
+        - set
+        - studentId
+        - email
+        - phone
+        - transactionId
+      properties:
+        name:
+          type: string
+          example: Rahul Sharma
+        fatherName:
+          type: string
+          example: Rajesh Sharma
+        course:
+          type: string
+          enum:
+            - B.Tech
+            - M.Tech
+            - BCA
+            - MCA
+            - BBA
+            - MBA
+            - B.Sc
+            - M.Sc
+          example: B.Tech
+        year:
+          type: string
+          enum:
+            - 1st Year
+            - 2nd Year
+            - 3rd Year
+            - 4th Year
+          example: 2nd Year
+        semester:
+          type: string
+          enum:
+            - 1st
+            - 2nd
+            - 3rd
+            - 4th
+            - 5th
+            - 6th
+            - 7th
+            - 8th
+          example: 3rd
+        section:
+          type: string
+          example: A
+        set:
+          type: string
+          example: Set 1
+        studentId:
+          type: string
+          example: Q2024001
+        email:
+          type: string
+          format: email
+          example: rahul@example.com
+        phone:
+          type: string
+          pattern: "^[0-9]{10}$"
+          example: "9876543210"
+        transactionId:
+          type: string
+          example: TXN123456789
+        turnstileToken:
+          type: string
+          example: dev-bypass
+    Event:
+      type: object
+      required:
+        - eventName
+        - description
+        - date
+        - coverImage
+      properties:
+        eventName:
+          type: string
+          example: Hackathon 2026
+
+        description:
+          type: string
+          example: Annual coding competition
+
+        date:
+          type: string
+          format: date
+          example: "2026-08-15"
+
+        registrationLink:
+          type: string
+          format: uri
+          example: https://forms.google.com/xxxxxxxx
+
+        coverImage:
+          type: string
+          format: binary
+    TeamMember:
+      type: object
+      required:
+        - academicYear
+        - subTeam
+        - name
+        - post
+        - photo
+      properties:
+        academicYear:
+          type: string
+          example: "2025-2026"
+
+        subTeam:
+          type: string
+          enum:
+            - Core Team
+            - Tech Team
+            - Graphic Team
+
+        name:
+          type: string
+          example: Jane Doe
+
+        post:
+          type: string
+          example: Lead Developer
+
+        photo:
+          type: string
+          format: binary
+    Contact:
+      type: object
+      required:
+        - name
+        - email
+        - subject
+        - message
+        - turnstileToken
+      properties:
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        subject:
+          type: string
+          example: Query about CodeX membership
+        message:
+          type: string
+          example: I would like to know more about joining CodeX.
+        turnstileToken:
+          type: string
+          example: dev-bypass
+paths:
+  /healthcheck:
+    get:
+      tags:
+        - Healthcheck
+      summary: Check server health
+      responses:
+        "200":
+          description: Server is running
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /admin/login:
+    post:
+      tags:
+        - Admin
+      summary: Login with email & password (sends OTP)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@codex.com
+                password:
+                  type: string
+                  example: admin123
+      responses:
+        "200":
+          description: OTP sent to admin email
+        "401":
+          description: Invalid credentials
+        "404":
+          description: Admin not found
+  /admin/verify-otp:
+    post:
+      tags:
+        - Admin
+      summary: Verify OTP and get access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@codex.com
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        "200":
+          description: Admin logged in, token set in cookie
+        "400":
+          description: Invalid or expired OTP
+  /admin/logout:
+    post:
+      tags:
+        - Admin
+      summary: Logout and clear session
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Logged out successfully
+  /admin/profile:
+    patch:
+      tags:
+        - Admin
+      summary: Update admin profile
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Super Admin
+                mobileNumber:
+                  type: string
+                  example: "9876543210"
+      responses:
+        "200":
+          description: Profile updated
+  /admin/request-password-change:
+    post:
+      tags:
+        - Admin
+      summary: Request password change (sends OTP)
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oldPassword
+              properties:
+                oldPassword:
+                  type: string
+                  example: admin123
+      responses:
+        "200":
+          description: OTP sent to admin email
+        "400":
+          description: Invalid old password
+  /admin/change-password:
+    post:
+      tags:
+        - Admin
+      summary: Verify OTP and change admin password
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newPassword
+                - otp
+              properties:
+                newPassword:
+                  type: string
+                  example: newSecurePass!
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        "200":
+          description: Password changed successfully
+        "400":
+          description: Invalid or expired OTP
+  /admin/sessions:
+    get:
+      tags:
+        - Admin
+      summary: Get all active admin sessions
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of active sessions
+  /admin/sessions/{id}:
+    delete:
+      tags:
+        - Admin
+      summary: Kill a specific session
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Session ID to kill
+      responses:
+        "200":
+          description: Session killed
+        "404":
+          description: Session not found
+  /admin/current:
+    get:
+      tags:
+        - Admin
+      summary: Get the current admin user
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Current admin fetched successfully
+        "401":
+          description: Unauthorized
+  /admin/dashboard:
+    get:
+      tags:
+        - Admin
+      summary: Get dashboard metrics aggregation
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Dashboard metrics fetched successfully
+        "401":
+          description: Unauthorized
+  /students/register:
+    post:
+      tags:
+        - Students
+      summary: Register a new student (public)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentRegistration"
+      responses:
+        "201":
+          description: Registration submitted successfully
+        "400":
+          description: Validation error or duplicate transaction ID
+  /registrations:
+    get:
+      tags:
+        - Registrations
+      summary: Get all registrations (admin)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - PENDING
+              - APPROVED
+              - REJECTED
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by name, email, student ID, or transaction ID
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Paginated list of registrations
+  /registrations/{id}/status:
+    patch:
+      tags:
+        - Registrations
+      summary: Approve or reject a registration
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - APPROVED
+                    - REJECTED
+                  example: APPROVED
+      responses:
+        "200":
+          description: Registration status updated & email sent
+        "400":
+          description: Invalid status
+        "404":
+          description: Registration not found
+  /events:
+    get:
+      tags:
+        - Events
+      summary: Get all events (public)
+      responses:
+        "200":
+          description: List of events
+    post:
+      tags:
+        - Events
+      summary: Create a new event (admin)
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - eventName
+                - description
+                - date
+                - coverImage
+              properties:
+                eventName:
+                  type: string
+                description:
+                  type: string
+                date:
+                  type: string
+                  format: date
+                registrationLink:
+                  type: string
+                coverImage:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Event created
+  /events/{id}:
+    patch:
+      tags:
+        - Events
+      summary: Update an event (admin)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Event"
+      responses:
+        "200":
+          description: Event updated
+    delete:
+      tags:
+        - Events
+      summary: Delete an event (admin)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event deleted
+  /teams:
+    get:
+      tags:
+        - Team
+      summary: Get all team members (public)
+      responses:
+        "200":
+          description: List of team members
+    post:
+      tags:
+        - Team
+      summary: Add a team member (admin)
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - academicYear
+                - subTeam
+                - name
+                - post
+                - photo
+              properties:
+                academicYear:
+                  type: string
+                  example: "2025-2026"
+
+                subTeam:
+                  type: string
+                  enum:
+                    - Core Team
+                    - Tech Team
+                    - Graphic Team
+                  example: Tech Team
+
+                name:
+                  type: string
+                  example: Jane Doe
+
+                post:
+                  type: string
+                  example: Lead Developer
+
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Team member added
+  /teams/{id}:
+    patch:
+      tags:
+        - Team
+      summary: Update a team member (admin)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/TeamMember"
+      responses:
+        "200":
+          description: Team member updated
+    delete:
+      tags:
+        - Team
+      summary: Delete a team member (admin)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team member deleted
+  /certificates/verify/{certificateId}:
+    get:
+      tags:
+        - Certificates
+      summary: Verify a certificate (public)
+      parameters:
+        - name: certificateId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique certificate ID
+      responses:
+        "200":
+          description: Certificate verified
+        "404":
+          description: Invalid certificate ID
+  /certificates/generate-bulk:
+    post:
+      tags:
+        - Certificates
+      summary: Generate bulk certificates & send emails (admin)
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - eventName
+                - eventDate
+                - coordinatorName
+                - studentsStr
+                - signatureImage
+              properties:
+                eventName:
+                  type: string
+                  example: Hackathon 2026
+                eventDate:
+                  type: string
+                  format: date
+                  example: 2026-08-15
+                coordinatorName:
+                  type: string
+                  example: Dr. Smith
+                studentsStr:
+                  type: string
+                  example: '[{"name":"John","email":"john@test.com","position":"Winner"}]'
+                  description: JSON stringified array of {name, email, position}
+                signatureImage:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Certificates generated and emails sent
+  /boarding-passes/verify/{boardingPassId}:
+    get:
+      tags:
+        - Boarding Passes
+      summary: Verify a boarding pass (public)
+      parameters:
+        - name: boardingPassId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique boarding pass ID
+      responses:
+        "200":
+          description: Boarding pass verified
+        "404":
+          description: Invalid boarding pass ID
+  /boarding-passes/generate-bulk:
+    post:
+      tags:
+        - Boarding Passes
+      summary: Generate bulk boarding passes & send emails (admin)
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - eventName
+                - eventDescription
+                - qid
+                - studentsStr
+              properties:
+                eventName:
+                  type: string
+                  example: Hackathon 2026
+                eventDescription:
+                  type: string
+                  example: Annual coding competition
+                qid:
+                  type: string
+                  example: QID-12345
+                wifiUser:
+                  type: string
+                  example: guest_user
+                wifiPass:
+                  type: string
+                  example: guest_pass123
+                loginUser:
+                  type: string
+                  example: login_id123
+                loginPass:
+                  type: string
+                  example: secure_pass456
+                studentsStr:
+                  type: string
+                  example: '[{"name":"John","email":"john@test.com"}]'
+                  description: JSON stringified array of {name, email}
+      responses:
+        "201":
+          description: Boarding passes generated and emails sent
+  /contact:
+    post:
+      tags:
+        - Contact
+      summary: Submit a contact form (public)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Contact"
+      responses:
+        "201":
+          description: Message submitted
+    get:
+      tags:
+        - Contact
+      summary: Get all contact messages (admin)
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: List of messages
+  /contact/{id}:
+    delete:
+      tags:
+        - Contact
+      summary: Delete a contact message (admin)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Message deleted
+  /contact/{id}/read:
+    patch:
+      tags:
+        - Contact
+      summary: Mark a message as read (admin)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Message marked as read
