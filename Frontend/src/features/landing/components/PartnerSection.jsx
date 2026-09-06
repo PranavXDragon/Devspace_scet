@@ -1,7 +1,7 @@
-import React from "react";
-import contentData from "../../../data/content.json";
+﻿import React from "react";
+import contentData from "@/data/content.json";
 import { ArrowRight } from "lucide-react";
-import { ASSETS } from "../../../config/assets";
+import { ASSETS } from "@/config/assets";
 
 const logoMap = {
   "HackIndia": ASSETS.IMAGES.PARTNER_HACKINDIA,

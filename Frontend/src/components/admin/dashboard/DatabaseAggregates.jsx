@@ -1,13 +1,13 @@
-import React from "react";
-import { Link } from "react-router-dom";
+﻿import React from "react";
+
+import Link from 'next/link';;
 
 export default function DatabaseAggregates({ metrics }) {
   return (
     <div className="bg-card rounded-2xl p-6 border border-border shadow-sm flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <h3 className="font-bold text-text">Database Aggregates</h3>
-        <Link
-          to="/admin/events"
+        <Link href="/admin/events"
           className="text-xs font-medium text-accent hover:underline"
         >
           Manage Records

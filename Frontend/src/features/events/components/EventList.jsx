@@ -1,11 +1,12 @@
+﻿"use client";
 import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import {  useRouter  } from 'next/navigation';;
 import { Calendar, Clock, ArrowRight, Image as ImageIcon } from "lucide-react"; // Imported ImageIcon
-import { PublicEventCardSkeleton } from "../../../components/common/skeletons";
+import { PublicEventCardSkeleton } from "@/components/common/skeletons";
 
 const EventList = ({ events = [], loading }) => {
   const [activeTab, setActiveTab] = useState("UPCOMING");
-  const navigate = useNavigate();
+  const navigate = useRouter();
 
   // Filter and Sort events dynamically based on current date
   const { upcomingEvents, pastEvents } = useMemo(() => {
@@ -73,7 +74,7 @@ const EventList = ({ events = [], loading }) => {
           displayEvents.map((event) => (
             <div
               key={event._id}
-              onClick={() => navigate(`/events/${event._id}`)}
+              onClick={() => navigate.push(`/events/${event._id}`)}
               className="cursor-pointer bg-card rounded-3xl border-2 border-border-soft p-5 sm:p-6 lg:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:shadow-[4px_4px_0px_rgba(46,197,212,0.2)] hover:border-accent transition-all duration-300 group"
             >
               

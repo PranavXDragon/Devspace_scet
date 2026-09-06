@@ -1,5 +1,6 @@
+﻿"use client";
 import { useSelector, useDispatch } from "react-redux";
-import { clearError } from "../../context/messageSlice.js";
+import { clearError } from "@/context/messageSlice.js";
 import { useEffect } from "react";
 
 function GlobalMessage() {
@@ -43,3 +44,4 @@ function GlobalMessage() {
 }
 
 export default GlobalMessage;
+

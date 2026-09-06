@@ -1,10 +1,11 @@
+﻿"use client";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
-import { setError } from "../../../context/messageSlice";
+import { setError } from "@/context/messageSlice";
 import { Turnstile } from "@marsidev/react-turnstile";
-import axiosInstance from "../../../services/axiosInstance";
-import contentData from "../../../data/content.json";
+import axiosInstance from "@/services/axiosInstance";
+import contentData from "@/data/content.json";
 import {
   User,
   Mail,
@@ -227,7 +228,7 @@ const ContactSection = () => {
                   <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-border-soft">
                     <div className="w-full sm:w-auto flex justify-center scale-90 sm:scale-100 origin-left">
                       <Turnstile
-                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
+                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
                         onSuccess={(token) => setTurnstileToken(token)}
                         options={{ theme: "auto" }}
                       />
@@ -260,3 +261,4 @@ const ContactSection = () => {
 };
 
 export default ContactSection;
+

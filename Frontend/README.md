@@ -1,70 +1,36 @@
-# Devspace Frontend
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-This directory contains the React + Vite frontend application for the Devspace Club platform. It encompasses public landing pages, event listings, and a comprehensive portal for members and administrators.
+## Getting Started
 
-## 🚀 Tech Stack
-
-The Frontend is built using modern web technologies to ensure a fast, responsive, and maintainable application:
-
-- **Framework:** [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
-- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/)
-- **State Management:** [Redux Toolkit](https://redux-toolkit.js.org/) & `react-redux`
-- **Routing:** [React Router v7](https://reactrouter.com/)
-- **Form Handling:** [React Hook Form](https://react-hook-form.com/)
-- **Animations:** [Framer Motion](https://www.framer.com/motion/)
-- **Rich Text Editing:** [TinyMCE React](https://www.tiny.cloud/docs/integrations/react/)
-
-## 📦 Getting Started
-
-### Prerequisites
-
-- Node.js >= 18
-- npm or yarn
-
-### Installation
-
-Navigate into the `Frontend` directory and install the dependencies:
-
-```bash
-cd Frontend
-npm install
-```
-
-### Environment Variables
-
-Create a `.env` file in the root of the `Frontend` directory. You can configure frontend-specific variables here:
-
-```env
-# Example environment variables
-VITE_API_BASE_URL=http://localhost:5000/api/v1
-```
-
-*(Note: Vite requires custom environment variables to be prefixed with `VITE_`)*.
-
-### Development Server
-
-Start the development server with Hot Module Replacement (HMR):
+First, run the development server:
 
 ```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-The app will typically be available at `http://localhost:5173`.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## 📜 Available Scripts
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-In the project directory, you can run:
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-- `npm run dev` — Starts the Vite development server.
-- `npm run build` — Compiles and minifies the application for production.
-- `npm run preview` — Boots up a local static web server that serves the files from `dist` (useful to preview the production build locally).
-- `npm run lint` — Runs ESLint across the codebase to catch errors and enforce code style.
+## Learn More
 
-## 🧪 Testing
+To learn more about Next.js, take a look at the following resources:
 
-There are no automated tests included by default in the `Frontend` directory. 
-Please add unit or integration tests (e.g., using Jest or Cypress) in the root `Testing/` directory, and update the CI/CD pipeline accordingly.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## 🤝 Contributing
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-For details on setting up the full stack locally (Frontend + Backend + MongoDB) and contributing guidelines, please refer to the [Root CONTRIBUTING.md](../CONTRIBUTING.md).
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

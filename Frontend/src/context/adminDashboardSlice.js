@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axiosInstance from "../services/axiosInstance";
+﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axiosInstance from "@/services/axiosInstance";
 
 export const fetchDashboardMetrics = createAsyncThunk(
   "adminDashboard/fetch",

@@ -1,5 +1,6 @@
+﻿"use client";
 import React, { createContext, useContext, useState, useCallback } from "react";
-import ConfirmModal from "../components/common/ConfirmModal";
+import ConfirmModal from "@/components/common/ConfirmModal";
 
 const ConfirmContext = createContext();
 
@@ -58,3 +59,4 @@ export const ConfirmProvider = ({ children }) => {
     </ConfirmContext.Provider>
   );
 };
+

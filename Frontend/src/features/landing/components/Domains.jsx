@@ -1,5 +1,5 @@
-import React from "react";
-import contentData from "../../../data/content.json";
+﻿import React from "react";
+import contentData from "@/data/content.json";
 import {
   Globe,
   BrainCircuit,

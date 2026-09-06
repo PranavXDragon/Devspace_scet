@@ -1,9 +1,10 @@
+﻿"use client";
 import React from "react";
 import { CheckCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import {  useRouter  } from 'next/navigation';;
 
 export default function RegistrationSuccess() {
-  const navigate = useNavigate();
+  const navigate = useRouter();
 
   return (
     <div className="min-h-screen bg-bg-soft flex flex-col items-center justify-center font-jetbrains p-6 relative">
@@ -26,7 +27,7 @@ export default function RegistrationSuccess() {
           registration.
         </p>
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate.push("/")}
           className="bg-text text-bg px-8 py-4 font-bold uppercase tracking-widest hover:bg-accent hover:text-text transition-colors border-2 border-transparent hover:border-text"
         >
           Return to Base
@@ -35,3 +36,5 @@ export default function RegistrationSuccess() {
     </div>
   );
 }
+
+

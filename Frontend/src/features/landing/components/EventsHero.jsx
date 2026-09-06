@@ -1,8 +1,9 @@
-import React from "react";
-import { Link } from "react-router-dom";
+﻿import React from "react";
+
+import Link from 'next/link';;
 import { ArrowRight, Star } from "lucide-react";
-import content from "../../../data/content.json";
-import { ASSETS } from "../../../config/assets";
+import content from "@/data/content.json";
+import { ASSETS } from "@/config/assets";
 
 const EventsHero = () => {
   const { eventsHero, layout } = content;
@@ -37,8 +38,7 @@ const EventsHero = () => {
           <p className="text-text-muted font-mono text-[1.05rem] leading-[1.8] max-w-[90%] mb-12 transition-colors duration-300">
             {eventsHero.description}
           </p>
-          <Link 
-            to="/events" 
+          <Link href="/events" 
             className="inline-flex items-center gap-4 px-[2rem] py-[1rem] bg-accent/5 hover:bg-accent hover:text-bg text-text font-sans text-[1.05rem] font-bold tracking-[0.2em] uppercase transition-all duration-300 group relative"
           >
             <div className="absolute inset-0 border border-accent shadow-[0_0_15px_rgba(46,197,212,0.2)] group-hover:shadow-[0_0_30px_rgba(46,197,212,0.6)] transition-all duration-300 pointer-events-none" style={{ clipPath: "polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)" }}></div>
@@ -116,3 +116,4 @@ const EventsHero = () => {
 };
 
 export default EventsHero;
+

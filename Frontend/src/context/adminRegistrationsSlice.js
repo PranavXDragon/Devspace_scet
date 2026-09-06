@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { registrationService } from "../services/registrationService";
+﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { registrationService } from "@/services/registrationService";
 
 export const fetchAdminRegistrations = createAsyncThunk(
   "adminRegistrations/fetch",

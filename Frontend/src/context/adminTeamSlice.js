@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { teamService } from "../services/teamService";
+﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { teamService } from "@/services/teamService";
 
 export const fetchAdminTeam = createAsyncThunk(
   "adminTeam/fetch",

@@ -1,6 +1,6 @@
-import { Editor } from "@tinymce/tinymce-react";
-import { tinyMCEConfig } from "../../utils/tinyMCEConfig";
-import { useTheme } from "../../hooks/useTheme"; // Adjust path if necessary
+﻿import { Editor } from "@tinymce/tinymce-react";
+import { tinyMCEConfig } from "@/utils/tinyMCEConfig";
+import { useTheme } from "@/hooks/useTheme"; // Adjust path if necessary
 
 export default function RichTextEditor({ value, onChange }) {
   const { theme } = useTheme();

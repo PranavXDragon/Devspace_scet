@@ -1,13 +1,13 @@
-import React from "react";
-import { Link } from "react-router-dom";
+﻿import React from "react";
+
+import Link from 'next/link';;
 
 export default function RecentRegistrations({ metrics, recentLogs }) {
   return (
     <div className="bg-card rounded-2xl p-6 border border-border shadow-sm flex flex-col h-[320px]">
       <div className="flex items-center justify-between mb-6 shrink-0">
         <h3 className="font-bold text-text">Recent Registrations</h3>
-        <Link
-          to="/admin/registrations"
+        <Link href="/admin/registrations"
           className="text-xs font-medium text-accent hover:underline"
         >
           View All

@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { qrService } from "../services/qrService";
+﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { qrService } from "@/services/qrService";
 
 export const fetchQRHistory = createAsyncThunk(
   "adminQr/fetchQRHistory",

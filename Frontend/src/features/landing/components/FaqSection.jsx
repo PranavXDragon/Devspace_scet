@@ -1,6 +1,7 @@
+﻿"use client";
 import React, { useState } from "react";
 import { Plus, Minus } from "lucide-react";
-import contentData from "../../../data/content.json";
+import contentData from "@/data/content.json";
 
 const FaqSection = () => {
   const activeFaqs = contentData.faqs.filter((faq) => faq.isActive);
@@ -104,3 +105,4 @@ const FaqSection = () => {
 };
 
 export default FaqSection;
+

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { QrCode, ShieldCheck, Loader2 } from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
 
@@ -52,7 +52,7 @@ export default function VerificationDetailsForm({
         </div>
         <Turnstile
           siteKey={
-            import.meta.env.VITE_TURNSTILE_SITE_KEY ||
+            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
             "1x00000000000000000000AA"
           }
           onSuccess={(token) => setTurnstileToken(token)}

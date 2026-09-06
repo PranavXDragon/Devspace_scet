@@ -1,5 +1,6 @@
-import React from "react";
-import { Link } from "react-router-dom";
+﻿import React from "react";
+
+import Link from 'next/link';;
 
 const Button = ({
   children,
@@ -16,7 +17,7 @@ const Button = ({
   const combinedClasses = `${baseStyle} ${variantStyle} ${className}`.trim();
   if (to) {
     return (
-      <Link to={to} className={combinedClasses} {...props}>
+      <Link href={to} className={combinedClasses} {...props}>
         {children}
       </Link>
     );
@@ -37,3 +38,4 @@ const Button = ({
 };
 
 export default Button;
+

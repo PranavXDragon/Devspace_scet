@@ -1,3 +1,4 @@
+﻿"use client";
 import { useState, useEffect } from "react";
 
 export function useTheme() {
@@ -55,3 +56,4 @@ export function useTheme() {
 
   return { theme, toggleTheme };
 }
+

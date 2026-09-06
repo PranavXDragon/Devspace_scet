@@ -1,8 +1,9 @@
-import React from "react";
-import { Link } from "react-router-dom";
+﻿import React from "react";
+
+import Link from 'next/link';;
 import { CalendarDays, Users, Globe, ChevronRight } from "lucide-react";
-import contentData from "../../../data/content.json";
-import { ASSETS } from "../../../config/assets";
+import contentData from "@/data/content.json";
+import { ASSETS } from "@/config/assets";
 
 const HeroSection = () => {
   const { hero } = contentData.landing;
@@ -13,7 +14,7 @@ const HeroSection = () => {
       : "bg-card/40 backdrop-blur-md text-text border border-border-soft hover:border-accent/50 hover:bg-card/60 shadow-sm hover:shadow-[0_0_20px_rgba(46,197,212,0.15)]";
       
     return (
-      <Link to={to} className={`${baseStyle} ${variantStyle} rounded-xl whitespace-nowrap`}>
+      <Link href={to} className={`${baseStyle} ${variantStyle} rounded-xl whitespace-nowrap`}>
         {variant === "solid" && (
           <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
         )}
@@ -121,3 +122,4 @@ const HeroSection = () => {
 };
 
 export default HeroSection;
+

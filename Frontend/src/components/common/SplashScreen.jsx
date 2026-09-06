@@ -1,5 +1,6 @@
+﻿"use client";
 import React, { useState, useEffect } from "react";
-import { ASSETS } from "../../config/assets";
+import { ASSETS } from "@/config/assets";
 
 const SplashScreen = ({ show = true }) => {
   // Initialize isEntered to true if show is true, so it doesn't start invisible and fade in on mount.
@@ -69,3 +70,4 @@ const SplashScreen = ({ show = true }) => {
 };
 
 export default React.memo(SplashScreen);
+

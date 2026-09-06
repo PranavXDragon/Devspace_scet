@@ -1,3 +1,4 @@
+﻿"use client";
 import React, { useState } from "react";
 import { createPortal } from "react-dom"; // <-- Added for portal
 import { useForm } from "react-hook-form";
@@ -7,7 +8,7 @@ import {
   createAdminEvent,
   updateAdminEvent,
   fetchAdminEvents,
-} from "../../../context/adminEventsSlice";
+} from "@/context/adminEventsSlice";
 import RichTextEditor from "../../common/RichTextEditor";
 
 export default function EventModal({ setIsModalOpen, editingEvent }) {

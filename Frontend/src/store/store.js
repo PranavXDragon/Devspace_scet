@@ -1,14 +1,14 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import authReducer from "../context/authSlice";
-import messageReducer from "../context/messageSlice";
-import adminEventsReducer from "../context/adminEventsSlice";
-import adminTeamReducer from "../context/adminTeamSlice";
-import adminRegistrationsReducer from "../context/adminRegistrationsSlice";
-import adminSessionsReducer from "../context/adminSessionsSlice";
-import adminDashboardReducer from "../context/adminDashboardSlice";
-import adminContactReducer from "../context/adminContactSlice";
-import adminQrReducer from "../context/adminQrSlice";
-import studentAuthReducer from "../context/studentAuthSlice";
+import authReducer from "@/context/authSlice";
+import messageReducer from "@/context/messageSlice";
+import adminEventsReducer from "@/context/adminEventsSlice";
+import adminTeamReducer from "@/context/adminTeamSlice";
+import adminRegistrationsReducer from "@/context/adminRegistrationsSlice";
+import adminSessionsReducer from "@/context/adminSessionsSlice";
+import adminDashboardReducer from "@/context/adminDashboardSlice";
+import adminContactReducer from "@/context/adminContactSlice";
+import adminQrReducer from "@/context/adminQrSlice";
+import studentAuthReducer from "@/context/studentAuthSlice";
 
 const appReducer = combineReducers({
   auth: authReducer,
@@ -34,5 +34,8 @@ const rootReducer = (state, action) => {
 const store = configureStore({
   reducer: rootReducer,
 });
+
+import { injectStore } from "@/services/axiosInstance";
+injectStore(store);
 
 export default store;
