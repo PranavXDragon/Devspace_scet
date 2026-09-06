@@ -6,6 +6,10 @@ let store;
 export const injectStore = (_store) => {
   store = _store;
 };
+let getTokenFn = null;
+export const injectGetToken = (fn) => {
+  getTokenFn = fn;
+};
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1",
@@ -13,6 +17,20 @@ const axiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+});
+
+axiosInstance.interceptors.request.use(async (config) => {
+  if (getTokenFn) {
+    try {
+      const token = await getTokenFn();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (e) {
+      console.error("Failed to get clerk token:", e);
+    }
+  }
+  return config;
 });
 axiosInstance.interceptors.response.use(
   (response) => {

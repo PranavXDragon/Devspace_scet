@@ -1,4 +1,12 @@
-"use client";
+const fs = require('fs');
+
+let f = 'p:/Devspace/Frontend/src/components/layout/Navbar.jsx';
+
+let content = fs.readFileSync(f, 'utf8');
+
+// I will literally just use the exact content string for the file
+// because it's only 250 lines and it's easier to just reconstruct it perfectly.
+const newContent = \"use client";
 import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -43,11 +51,7 @@ const Navbar = ({ layout }) => {
             const isActive = location === item.path;
             const isHash = item.path.includes('#');
             
-            const className = `relative font-sans text-sm tracking-[0.1em] uppercase transition-colors whitespace-nowrap py-2 ${
-              isActive
-                ? "text-accent font-bold"
-                : "text-text-muted hover:text-text font-medium"
-            }`;
+            const className = \\\elative font-sans text-sm tracking-[0.1em] uppercase transition-colors whitespace-nowrap py-2 \\\\\\;
             
             const isHomePage = location === '/';
             
@@ -60,7 +64,7 @@ const Navbar = ({ layout }) => {
                 duration={800}
                 offset={-80}
                 activeClass="!text-accent !font-bold"
-                className={`${className} cursor-pointer transition-all duration-300`}
+                className={\\\\\\ cursor-pointer transition-all duration-300\\\}
               >
                 {item.label}
               </ScrollLink>
@@ -143,19 +147,13 @@ const Navbar = ({ layout }) => {
           >
             <div className="relative w-5 h-4 text-current">
               <span
-                className={`absolute block w-5 h-[2px] bg-current transition-all duration-300 ease-in-out ${
-                  isMobileMenuOpen ? "top-2 rotate-45" : "top-0"
-                }`}
+                className={\\\bsolute block w-5 h-[2px] bg-current transition-all duration-300 ease-in-out \\\\\\}
               />
               <span
-                className={`absolute block w-5 h-[2px] bg-current transition-all duration-300 ease-in-out top-2 ${
-                  isMobileMenuOpen ? "opacity-0 translate-x-2" : "opacity-100 translate-x-0"
-                }`}
+                className={\\\bsolute block w-5 h-[2px] bg-current transition-all duration-300 ease-in-out top-2 \\\\\\}
               />
               <span
-                className={`absolute block w-5 h-[2px] bg-current transition-all duration-300 ease-in-out ${
-                  isMobileMenuOpen ? "top-2 -rotate-45" : "top-4"
-                }`}
+                className={\\\bsolute block w-5 h-[2px] bg-current transition-all duration-300 ease-in-out \\\\\\}
               />
             </div>
           </button>
@@ -164,22 +162,14 @@ const Navbar = ({ layout }) => {
 
       {/* 4. Mobile Menu Dropdown */}
       <div
-        className={`lg:hidden transition-all duration-300 ease-in-out overflow-hidden bg-card border-b border-border shadow-2xl absolute w-full ${
-          isMobileMenuOpen
-            ? "max-h-[400px] opacity-100"
-            : "max-h-0 opacity-0 pointer-events-none"
-        }`}
+        className={\\\lg:hidden transition-all duration-300 ease-in-out overflow-hidden bg-card border-b border-border shadow-2xl absolute w-full \\\\\\}
       >
         <div className="px-4 py-6 flex flex-col gap-4">
           <nav className="flex flex-col gap-2">
             {layout.nav.map((item) => {
               const isActive = location === item.path;
               const isHash = item.path.includes('#');
-              const className = `flex items-center px-4 py-3 rounded-lg font-sans text-sm tracking-[0.15em] uppercase transition-all ${
-                isActive
-                  ? "bg-accent/10 text-accent font-bold"
-                  : "text-text hover:text-text hover:bg-card-hover"
-              }`;
+              const className = \\\lex items-center px-4 py-3 rounded-lg font-sans text-sm tracking-[0.15em] uppercase transition-all \\\\\\;
               
               const isHomePage = location === '/';
               
@@ -193,7 +183,7 @@ const Navbar = ({ layout }) => {
                   offset={-80}
                   onClick={() => setIsMobileMenuOpen(false)}
                   activeClass="!bg-accent/10 !text-accent !font-bold"
-                  className={`${className} cursor-pointer transition-all duration-300`}
+                  className={\\\\\\ cursor-pointer transition-all duration-300\\\}
                 >
                   <span>{item.label}</span>
                 </ScrollLink>
@@ -258,3 +248,6 @@ const Navbar = ({ layout }) => {
 };
 
 export default Navbar;
+\;
+
+fs.writeFileSync(f, newContent);

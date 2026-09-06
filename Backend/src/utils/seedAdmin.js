@@ -16,7 +16,7 @@ export const seedAdmin = async () => {
       const defaultEmail = process.env.ADMIN_EMAIL || "admin@devspace.com";
       const defaultPassword = process.env.ADMIN_PASSWORD || "admin123";
 
-      // Hash the password manually since Mongoose pre-save hook is gone
+      // Hash the password manually
       const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
       const { error: insertError } = await supabase

@@ -143,13 +143,13 @@ export default function StudentLayout({ children }) {
             <Link
               key={item.name}
               href={item.path}
-              end={item.end}
-              className={({ isActive }) =>
+              className={
                 `flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${
-                  isActive
+                  location === item.path
                     ? "bg-accent/10 text-accent relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-accent before:rounded-r-md"
-                    : "text-text-text-muted hover:bg-card-hover hover:text-text"
+                    : "text-text-muted hover:bg-card-hover hover:text-text"
                 }`
+              }`
               }
             >
               <item.icon className="w-5 h-5" />

@@ -68,7 +68,7 @@
           "To provide reliable services, we integrate trusted third-party platforms that process limited information required for their functionality."
         ],
         "list": [
-          "MongoDB Atlas – Database hosting.",
+          "Supabase – Database hosting and authentication.",
           "Cloudinary – Media and image storage.",
           "Vercel – Website hosting and deployment.",
           "Cloudflare Turnstile – Protection against spam and automated bot submissions.",

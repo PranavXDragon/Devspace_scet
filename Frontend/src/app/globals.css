@@ -17,9 +17,9 @@
   --color-warning: var(--color-warning);
   --color-danger: var(--color-danger);
 
-  --font-mono: "JetBrains Mono", monospace;
-  --font-sans: "Oswald", sans-serif;
-  --font-serif: "Playfair Display", serif;
+  --font-mono: var(--font-mono);
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
   --shadow-brutal: 0 18px 60px rgba(13, 13, 13, 0.08);
   --breakpoint-md: 720px;
   --breakpoint-lg: 1100px;

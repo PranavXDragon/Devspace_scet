@@ -8,8 +8,12 @@ import rateLimit from "express-rate-limit";
 
 import { errorHandler } from "./middlewares/error.middleware.js";
 import swaggerUi from "swagger-ui-express";
+import { clerkMiddleware } from '@clerk/express';
 
 const app = express();
+
+// Apply Clerk middleware globally
+app.use(clerkMiddleware());
 
 // Security Headers
 app.use(helmet());
