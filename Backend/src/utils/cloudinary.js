@@ -1,8 +1,9 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import path from "path";
+import os from "os";
 
-const tempUploadDir = path.resolve("public/temp");
+const tempUploadDir = os.tmpdir();
 
 const safeUnlinkTempFile = (filePath) => {
   if (!filePath || filePath.startsWith('data:')) return;
