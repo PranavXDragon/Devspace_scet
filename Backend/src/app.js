@@ -60,6 +60,20 @@ import contactRouter from "./routes/contact.routes.js";
 import qrRouter from "./routes/qr.routes.js";
 import questionRouter from "./routes/question.routes.js";
 import resourceRouter from "./routes/resource.routes.js";
+import codingRouter from "./routes/coding.routes.js";
+import learningRouter from "./routes/learning.routes.js";
+import adminLearningRouter from "./routes/adminLearning.routes.js";
+import challengesRouter from "./routes/challenges.routes.js";
+import leaderboardRouter from "./routes/leaderboard.routes.js";
+import adminChallengesRouter from "./routes/adminChallenges.routes.js";
+import teamsRouter from "./routes/teams.routes.js";
+import projectsRouter from "./routes/projects.routes.js";
+import gitRouter from "./routes/git.routes.js";
+import discussionsRouter from "./routes/discussions.routes.js";
+import eventsRouter from "./routes/events.routes.js";
+import progressRouter from "./routes/progress.routes.js";
+import careerRouter from "./routes/career.routes.js";
+import attendanceRouter from "./routes/attendance.routes.js";
 
 // routes declaration
 app.use("/api/v1/healthcheck", healthcheckRouter);
@@ -74,6 +88,20 @@ app.use("/api/v1/contact", contactRouter);
 app.use("/api/v1/qr", qrRouter);
 app.use("/api/v1/admin/questions", questionRouter);
 app.use("/api/v1/resources", resourceRouter);
+app.use("/api/v1/coding", codingRouter);
+app.use("/api/v1/learning", learningRouter);
+app.use("/api/v1/admin/learning", adminLearningRouter);
+app.use("/api/v1/challenges", challengesRouter);
+app.use("/api/v1/leaderboard", leaderboardRouter);
+app.use("/api/v1/admin/challenges", adminChallengesRouter);
+app.use("/api/v1/teams", teamsRouter);
+app.use("/api/v1/projects", projectsRouter);
+app.use("/api/v1/git", gitRouter);
+app.use("/api/v1/discussions", discussionsRouter);
+app.use("/api/v1/events", eventsRouter);
+app.use("/api/v1/progress", progressRouter);
+app.use("/api/v1/career", careerRouter);
+app.use("/api/v1/attendance", attendanceRouter);
 
 // swagger api documentation (only in development)
 if (process.env.NODE_ENV !== 'production') {

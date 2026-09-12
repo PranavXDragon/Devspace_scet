@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { createEvent, getEvents, deleteEvent, updateEvent } from '../controllers/event.controller.js';
-import { verifyJWT } from '../middlewares/auth.middleware.js';
+import { verifyAdmin } from '../middlewares/adminAuth.middleware.js';
 import { upload } from '../middlewares/multer.middleware.js';
 
 const router = Router();
@@ -9,7 +9,7 @@ const router = Router();
 router.route('/').get(getEvents);
 
 // Secured admin routes
-router.use(verifyJWT);
+router.use(verifyAdmin);
 
 router.route('/').post(upload.single('coverImage'), createEvent);
 router.route('/:id')

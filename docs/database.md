@@ -1,6 +1,6 @@
 # Database
 
-This document describes the database architecture of the CodeX Backend. It explains how data is organized, how collections relate to each other, how MongoDB features such as TTL indexes are used, and the design decisions behind every collection.
+This document describes the database architecture of the DevSpace Backend. It explains how data is organized, how collections relate to each other, how MongoDB features such as TTL indexes are used, and the design decisions behind every collection.
 
 The backend uses **MongoDB** as its primary database with **Mongoose** as the Object Data Modeling (ODM) library.
 
@@ -21,7 +21,7 @@ The backend uses **MongoDB** as its primary database with **Mongoose** as the Ob
 
 # Database Overview
 
-The CodeX Backend stores all application data inside MongoDB collections.
+The DevSpace Backend stores all application data inside MongoDB collections.
 
 Each collection represents a specific business entity within the application.
 
@@ -71,7 +71,7 @@ This abstraction provides:
 
 # Why MongoDB?
 
-CodeX primarily stores document-based data rather than highly relational data.
+DevSpace primarily stores document-based data rather than highly relational data.
 
 Examples include:
 
@@ -226,7 +226,7 @@ Unlike a traditional SQL database, MongoDB does not require foreign keys.
 
 Instead, relationships are created only where necessary.
 
-The CodeX Backend intentionally minimizes relationships to keep collections independent.
+The DevSpace Backend intentionally minimizes relationships to keep collections independent.
 
 ```
                      ┌──────────────┐
@@ -512,7 +512,7 @@ Perfect. We'll continue with **Part 2**, covering the authentication-related col
 
 # Admin Collection
 
-The **Admin** collection stores administrator accounts responsible for managing the CodeX platform.
+The **Admin** collection stores administrator accounts responsible for managing the DevSpace platform.
 
 Unlike student registrations, administrator accounts are created manually (or automatically during the initial application startup using the `seedAdmin()` utility).
 
@@ -1021,7 +1021,7 @@ MongoDB automatically deletes the token using the TTL index.
 
 # Student Registration Collection
 
-This collection stores applications submitted by students who want to join the CodeX Club.
+This collection stores applications submitted by students who want to join the DevSpace Club.
 
 Collection:
 
@@ -1262,7 +1262,7 @@ These four collections work together to provide secure administrator authenticat
 
 # Event Collection
 
-The **Event** collection stores all club events displayed on the CodeX website.
+The **Event** collection stores all club events displayed on the DevSpace website.
 
 Each document represents a single event and contains all information required for public display.
 
@@ -1481,7 +1481,7 @@ This is an example of **data denormalization**, which is a common practice in Mo
 
 # TeamMember Collection
 
-The TeamMember collection stores information about the official CodeX team.
+The TeamMember collection stores information about the official DevSpace team.
 
 Collection:
 
@@ -1609,7 +1609,7 @@ The `isRead` field helps administrators distinguish between new and processed me
 
 Indexes improve query performance by allowing MongoDB to locate documents efficiently.
 
-The CodeX Backend currently uses three important indexes.
+The DevSpace Backend currently uses three important indexes.
 
 ---
 
@@ -1724,7 +1724,7 @@ Because of this, the application also checks expiration manually during authenti
 
 Hooks execute automatically before or after specific database operations.
 
-The CodeX Backend currently uses **pre-save hooks**.
+The DevSpace Backend currently uses **pre-save hooks**.
 
 ---
 
@@ -1874,7 +1874,7 @@ Duplicate values result in database errors.
 
 # Database Best Practices
 
-The CodeX Backend follows several database design principles.
+The DevSpace Backend follows several database design principles.
 
 - Keep collections focused on a single responsibility.
 - Store only metadata in MongoDB and keep files in Cloudinary.
@@ -1903,7 +1903,7 @@ The current schema design is suitable for the existing project, but future enhan
 
 # Database Summary
 
-The CodeX Backend currently consists of **eight Mongoose models**, each responsible for a specific domain of the application.
+The DevSpace Backend currently consists of **eight Mongoose models**, each responsible for a specific domain of the application.
 
 Key characteristics of the database architecture include:
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import {   useRouter,     } from 'next/navigation';
 import Link from 'next/link';;
@@ -164,7 +164,7 @@ export default function AdminLogin() {
                     required: "Password is required",
                   })}
                   className={`w-full bg-card border ${loginErrors.password ? "border-danger focus:ring-danger/20 focus:border-danger" : "border-border focus:ring-accent/20 focus:border-accent"} text-text rounded-lg p-2.5 pl-10 text-sm focus:outline-none focus:ring-2 transition-colors shadow-sm placeholder:text-text-text-muted`}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="********"
                 />
               </div>
               {loginErrors.password && (

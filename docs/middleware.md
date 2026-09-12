@@ -1,556 +1,149 @@
-# Middleware
+# Middleware Architecture
 
-This document explains the middleware used in the CodeX Club Backend. Middleware is responsible for processing requests before they reach the controllers and handling responses after the controllers finish execution.
-
----
-
-# What is Middleware?
-
-Middleware is a function that executes during the request-response lifecycle.
-
-It can:
-
-- Authenticate users
-- Validate requests
-- Handle file uploads
-- Add security headers
-- Parse request data
-- Log requests
-- Handle errors
-- Compress responses
-
-Every incoming request passes through multiple middleware before reaching the API route.
+This document explains the middleware pipeline used in the DevSpace Backend. Middleware is responsible for preprocessing incoming HTTP requests before they reach the controllers, and handling centralized logic like security headers, logging, rate limiting, and authentication.
 
 ---
 
-# Request Lifecycle
+## The Request Lifecycle
 
-```text
-Client Request
-      │
-      ▼
-Helmet
-      │
-      ▼
-Morgan Logger
-      │
-      ▼
-Rate Limiter
-      │
-      ▼
-Compression
-      │
-      ▼
-CORS
-      │
-      ▼
-JSON / URL Parser
-      │
-      ▼
-Cookie Parser
-      │
-      ▼
-Mongo Sanitization
-      │
-      ▼
-Authentication (Protected Routes)
-      │
-      ▼
-Controller
-      │
-      ▼
-Error Handler
-      │
-      ▼
-Client Response
+Every incoming request passes through a rigid sequence of middleware before reaching business logic. This ensures all requests are sanitized, secure, and authenticated.
+
+```mermaid
+graph TD
+    Client([Client Request])
+    
+    subgraph "Global Middleware (app.js)"
+        Helmet[Helmet Security Headers]
+        Morgan[Morgan Logger]
+        RateLimit[IP Rate Limiter]
+        Compression[Response Compression]
+        CORS[CORS Policy]
+        BodyParser[JSON & URL-Encoded Parsers]
+        CookieParser[Cookie Parser]
+        MongoSanitize[MongoDB Sanitization]
+    end
+    
+    subgraph "Route-Specific Middleware"
+        Auth{Authentication Middlewares}
+        verifyStudent[verifyStudentJWT]
+        verifyAdmin[verifyAdmin]
+        Upload[Multer File Upload]
+    end
+    
+    subgraph "Execution & Response"
+        Controller[Business Logic Controller]
+        ErrorHandler[Global Error Handler]
+        Response([Client Response])
+    end
+
+    Client --> Helmet
+    Helmet --> Morgan
+    Morgan --> RateLimit
+    RateLimit --> Compression
+    Compression --> CORS
+    CORS --> BodyParser
+    BodyParser --> CookieParser
+    CookieParser --> MongoSanitize
+    
+    MongoSanitize --> Auth
+    Auth -->|Student Route| verifyStudent
+    Auth -->|Admin Route| verifyAdmin
+    Auth -->|Public Route| Upload
+    
+    verifyStudent --> Controller
+    verifyAdmin --> Controller
+    Upload --> Controller
+    
+    Controller -->|Success| Response
+    Controller -->|Throw Error| ErrorHandler
+    ErrorHandler --> Response
 ```
 
 ---
 
-# Global Middleware
+## 1. Global Middleware Pipeline
 
-The following middleware is applied to every request.
+The following middleware is applied to **every** incoming request.
 
-| Middleware | Purpose |
-|------------|---------|
-| Helmet | Adds security-related HTTP headers |
-| Morgan | Logs incoming HTTP requests |
-| Rate Limiter | Prevents excessive requests |
-| Compression | Compresses responses for better performance |
-| CORS | Allows requests from approved origins |
-| Express JSON | Parses JSON request bodies |
-| Express URL Encoded | Parses form data |
-| Cookie Parser | Reads cookies from incoming requests |
-| Express Static | Serves static files |
-| Mongo Sanitize | Prevents NoSQL Injection attacks |
-| Error Handler | Handles all application errors |
+| Middleware | Package | Purpose |
+|------------|---------|---------|
+| **Helmet** | `helmet` | Injects critical security-related HTTP headers (e.g., HSTS, X-Frame-Options). |
+| **Logger** | `morgan` | Logs incoming HTTP requests to the console for monitoring. |
+| **Rate Limiter** | `express-rate-limit` | Prevents excessive requests. Currently limits IPs to 100 requests per 15 minutes. |
+| **Compression** | `compression` | Compresses outgoing JSON responses (Gzip) to drastically reduce bandwidth usage. |
+| **CORS** | `cors` | Allows requests strictly from approved frontend origins (`CORS_ORIGIN`), with `credentials` enabled to allow cookies. |
+| **Parsers** | `express.json` / `urlencoded` | Parses JSON and form-data payloads (Maximum `16 KB`). |
+| **Cookies** | `cookie-parser` | Parses `Cookie` headers to extract JWTs (e.g., `adminToken`). |
+| **Sanitization** | `express-mongo-sanitize` | Strips MongoDB query operators (`$`, `.`) from inputs to prevent NoSQL Injection. |
 
 ---
 
-# Helmet
+## 2. Authentication Middleware
 
-Helmet helps secure the application by automatically setting several HTTP security headers.
+As defined in the [Authentication Architecture](./authentication.md), DevSpace uses two distinct authentication middlewares to protect routes.
 
-### Purpose
+> [!CAUTION]
+> **Strict Route Isolation**
+> Never apply both `verifyStudentJWT` and `verifyAdmin` to the same route. Routes must be strictly segregated by access level.
 
-- Protect against common web vulnerabilities
-- Improve browser security
-- Hide unnecessary server information
+### A. `verifyStudentJWT`
+This middleware protects endpoints meant for students (e.g., `/api/student/*`).
+1. Extracts the Clerk Session token from the `Authorization: Bearer` header.
+2. Uses the Clerk SDK to verify the token signature.
+3. Cross-references the Clerk email address against the local `student_registrations` table.
+4. If registered, attaches the student profile to `req.student`.
 
-Applied globally before all routes.
+### B. `verifyAdmin`
+This middleware protects administrative endpoints (e.g., `/api/admin/*`).
+1. Extracts the custom `adminToken` from the HTTP-Only cookie.
+2. Verifies the JWT signature using the backend `ACCESS_TOKEN_SECRET`.
+3. Verifies that the JWT payload contains `role: 'Admin'`.
+4. Attaches the decoded admin profile to `req.admin`.
 
----
-
-# Morgan
-
-Morgan logs every incoming HTTP request.
-
-### Purpose
-
-- Request debugging
-- Development logging
-- API monitoring
-
-Example log:
-
-```text
-GET /api/v1/events 200 15ms
-```
+If authentication fails in either middleware, it immediately throws a `401 Unauthorized` or `403 Forbidden` error, blocking the request from reaching the controller.
 
 ---
 
-# Rate Limiter
+## 3. File Uploads (`multer.middleware.js`)
 
-The backend limits repeated requests to reduce abuse.
+DevSpace uses **Multer** to process `multipart/form-data` requests (file uploads).
 
-### Configuration
+- **Storage:** Files are temporarily buffered to the local `public/temp/` directory.
+- **Naming:** Files are appended with a timestamp to avoid naming collisions (e.g., `avatar-1720953876123.png`).
+- **Processing:** Once the controller successfully uploads the file to Cloudinary, the local temporary file is deleted.
 
-| Property | Value |
-|----------|-------|
-| Window | 15 Minutes |
-| Maximum Requests | 100 |
-| Applied To | `/api/*` |
+---
 
-When the limit is exceeded:
+## 4. Centralized Error Handling (`error.middleware.js`)
 
-```http
-429 Too Many Requests
-```
+> [!TIP]
+> **Throwing Errors:** In controllers, you do not need to use `try/catch` blocks if you are using the `asyncHandler`. Simply write `throw new ApiError(404, "User not found")`.
 
-Response:
+The Global Error Handler is the very last middleware in the pipeline (`app.use(errorHandler)`). It catches all synchronous and asynchronous errors.
 
+### Responsibilities:
+1. Intercepts custom `ApiError` instances and Mongoose Validation errors.
+2. Unifies the error format into a standard JSON `ApiResponse`.
+3. **Environment Awareness:** 
+   - In `development`, the error response includes the full stack trace for debugging.
+   - In `production`, stack traces are completely stripped to prevent leaking system internals to users.
+
+### Example Response Format
 ```json
 {
-    "message": "Too many requests from this IP, please try again after 15 minutes"
-}
-```
-
----
-
-# Compression
-
-Compression reduces the size of API responses before sending them to clients.
-
-### Benefits
-
-- Faster responses
-- Reduced bandwidth usage
-- Improved performance
-
----
-
-# CORS
-
-Cross-Origin Resource Sharing controls which frontend applications can access the backend.
-
-### Configuration
-
-- Allowed Origin comes from `.env`
-- Credentials are enabled
-- Supports HTTP Only Cookies
-
-Example
-
-```javascript
-origin: process.env.CORS_ORIGIN
-credentials: true
-```
-
----
-
-# Request Body Parsers
-
-The backend automatically parses incoming request data.
-
-### JSON Parser
-
-Supports JSON payloads up to:
-
-```text
-16 KB
-```
-
----
-
-### URL Encoded Parser
-
-Supports HTML form submissions.
-
-Maximum payload:
-
-```text
-16 KB
-```
-
----
-
-# Cookie Parser
-
-Reads cookies sent by the browser.
-
-Used for:
-
-- JWT Authentication
-- Session validation
-
-Example
-
-```javascript
-req.cookies.accessToken
-```
-
----
-
-# Static File Middleware
-
-Serves public files from:
-
-```text
-public/
-```
-
-Examples include:
-
-- Uploaded images
-- Temporary files
-- Static assets
-
----
-
-# Mongo Sanitize
-
-Protects the application against NoSQL Injection attacks.
-
-Incoming data is sanitized from:
-
-- Request Body
-- URL Parameters
-- Query Parameters
-- Request Headers
-
-This prevents malicious MongoDB operators such as:
-
-```text
-$gt
-$ne
-$where
-```
-
-from being injected into queries.
-
----
-
-# Authentication Middleware
-
-Middleware Name
-
-```text
-verifyJWT
-```
-
-This middleware protects administrator-only routes.
-
----
-
-## Authentication Process
-
-For every protected request:
-
-```text
-Request
-   │
-   ▼
-Read JWT Cookie
-   │
-   ▼
-Verify JWT Signature
-   │
-   ▼
-Validate Session ID
-   │
-   ▼
-Check User Role
-   │
-   ▼
-Find Session
-   │
-   ▼
-Find Admin
-   │
-   ▼
-Attach Admin to Request
-   │
-   ▼
-Continue Request
-```
-
----
-
-## Authentication Steps
-
-The middleware performs the following checks:
-
-### 1. Read Token
-
-Looks for a JWT in:
-
-- HTTP Only Cookie
-- Authorization Header
-
----
-
-### 2. Verify JWT
-
-The token is verified using the application secret.
-
-If verification fails:
-
-```http
-401 Unauthorized
-```
-
----
-
-### 3. Validate Session
-
-The middleware checks whether:
-
-- Session exists
-- Session token matches
-
-If not:
-
-```http
-401 Session expired or invalid
-```
-
----
-
-### 4. Verify Admin Role
-
-Only administrators can access protected routes.
-
-If another role attempts access:
-
-```http
-403 Access Denied
-```
-
----
-
-### 5. Load Admin
-
-The authenticated administrator is loaded from the database.
-
-The password field is excluded.
-
----
-
-### 6. Attach Request Data
-
-After successful authentication:
-
-```javascript
-req.admin
-req.sessionId
-```
-
-become available for controllers.
-
----
-
-# File Upload Middleware
-
-The backend uses **Multer** for handling file uploads.
-
-### Storage
-
-Files are temporarily stored inside:
-
-```text
-public/temp/
-```
-
-The directory is automatically created if it does not exist.
-
----
-
-## File Naming
-
-Uploaded files receive a unique filename.
-
-Example
-
-```text
-coverImage-1720953876123.png
-```
-
-This prevents filename collisions.
-
----
-
-## Used By
-
-- Event Cover Images
-- Team Member Photos
-- Certificate Signatures
-
----
-
-# Error Handling Middleware
-
-The error handler is registered after all routes.
-
-```text
-app.use(errorHandler)
-```
-
-This ensures every application error is handled consistently.
-
----
-
-## Responsibilities
-
-The middleware:
-
-- Handles custom API errors
-- Handles Mongoose validation errors
-- Converts unknown errors into API errors
-- Sends consistent JSON responses
-
----
-
-## Development Mode
-
-During development:
-
-- Error stack traces are included
-
-Example
-
-```json
-{
+    "statusCode": 404,
+    "data": null,
     "success": false,
-    "message": "Validation failed",
-    "stack": "..."
+    "message": "Student registration not found",
+    "errors": []
 }
 ```
 
 ---
 
-## Production Mode
-
-In production:
-
-- Stack traces are hidden
-- Only safe error information is returned
-
----
-
-# Server Startup
-
-Before the application starts serving requests:
-
-1. Environment variables are loaded.
-2. MongoDB connection is established.
-3. Default administrator is seeded.
-4. Express server starts listening.
-5. Global error handlers are registered.
-
----
-
-# Global Error Handling
-
-The application listens for unexpected runtime errors.
-
-## Uncaught Exceptions
-
-Handles synchronous application crashes.
-
-Example
-
-```text
-ReferenceError
-SyntaxError
-```
-
----
-
-## Unhandled Rejections
-
-Handles rejected Promises that were not caught.
-
-Example
-
-```text
-Database Connection Failure
-API Failure
-```
-
-When detected, the server shuts down gracefully.
-
----
-
-# Middleware Execution Order
-
-```text
-Helmet
-    │
-Morgan
-    │
-Rate Limiter
-    │
-Compression
-    │
-CORS
-    │
-Body Parser
-    │
-Cookie Parser
-    │
-Static Files
-    │
-Mongo Sanitize
-    │
-API Routes
-    │
-verifyJWT (Protected Routes Only)
-    │
-Controller
-    │
-Error Handler
-    │
-Response
-```
-
----
-
-# Related Documentation
+## Related Documentation
 
 | Document | Description |
 |----------|-------------|
-| `authentication.md` | Authentication and session flow |
-| `api-reference.md` | Complete API documentation |
-| `security.md` | Security features and protections |
-| `database.md` | Database collections and models |
-| `development-guide.md` | Backend development guidelines |
+| [`authentication.md`](./authentication.md) | Details on the Dual-Door Auth flow. |
+| [`security.md`](./security.md) | Details on Helmet, CORS, and Sanitization configurations. |

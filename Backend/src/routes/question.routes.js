@@ -6,12 +6,12 @@ import {
     updateQuestion, 
     deleteQuestion 
 } from '../controllers/question.controller.js';
-import { verifyJWT } from '../middlewares/auth.middleware.js';
+import { verifyAdmin } from '../middlewares/adminAuth.middleware.js';
 
 const router = Router();
 
 // All question management routes require Admin JWT
-router.use(verifyJWT);
+router.use(verifyAdmin);
 
 router.route('/')
     .get(getAllQuestions)

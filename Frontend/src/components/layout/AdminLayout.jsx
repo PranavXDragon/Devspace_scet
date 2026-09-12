@@ -1,16 +1,17 @@
-﻿"use client";
+"use client";
 import { useEffect, useState, Suspense } from "react";
-import {    , Navigate, usePathname   } from 'next/navigation';;
+import { useRouter, usePathname } from 'next/navigation';
 import { useSelector, useDispatch } from "react-redux";
 import { adminService } from "@/services/adminService";
 import { setLogin, setLogout, setAuthResolved } from "@/context/authSlice";
 import SplashScreen from "@/components/common/SplashScreen";
 
-export default function AdminLayout() {
+export default function AdminLayout({ children }) {
   const dispatch = useDispatch();
   const isAuthResolved = useSelector((state) => state.auth.isAuthResolved);
   const user = useSelector((state) => state.auth.user);
   const location = usePathname();
+  const router = useRouter();
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
@@ -44,33 +45,26 @@ export default function AdminLayout() {
     fetchProfile();
   }, [dispatch]);
 
-  let content = null;
   const isLoginPage = location === "/admin/login";
 
-  if (isAuthResolved) {
-    // 2. If unauthenticated and trying to access dashboard routes, redirect to login
-    if (!user && !isLoginPage) {
-      content = (
-        <Navigate href="/admin/login" replace state={{ from: location }} />
-      );
+  useEffect(() => {
+    if (isAuthResolved) {
+      if (!user && !isLoginPage) {
+        router.replace("/admin/login");
+      } else if (user && isLoginPage) {
+        router.replace("/admin/dashboard");
+      }
     }
-    // 3. If authenticated and trying to access the login page, redirect to dashboard
-    else if (user && isLoginPage) {
-      content = <Navigate href="/admin/dashboard" replace />;
-    }
-    // 4. Otherwise, render the requested route
-    else {
-      content = {children};
-    }
-  }
+  }, [isAuthResolved, user, isLoginPage, router]);
+
+  // Don't render content until auth is resolved and redirects are handled
+  if (!isAuthResolved) return <SplashScreen show={true} />;
+  if (!user && !isLoginPage) return null;
+  if (user && isLoginPage) return null;
 
   return (
     <>
-      {/* 
-        Always keep SplashScreen at the top so it doesn't unmount abruptly.
-        It fades out smoothly after showSplash becomes false.
-      */}
-      <SplashScreen show={!isAuthResolved || showSplash} />
+      <SplashScreen show={showSplash} />
       <Suspense
         fallback={
           <div className="flex h-screen items-center justify-center">
@@ -78,9 +72,8 @@ export default function AdminLayout() {
           </div>
         }
       >
-        {content}
+        {children}
       </Suspense>
     </>
   );
 }
-

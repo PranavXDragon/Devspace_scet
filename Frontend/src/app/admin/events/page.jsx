@@ -1,156 +1,147 @@
-﻿"use client";
-import { useState, useEffect } from "react";
-import {  useRouter  } from 'next/navigation';;
-import {
-  Loader2,
-  Edit,
-  Trash2,
-  Calendar,
-  Image as ImageIcon,
-} from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
-import { useConfirm } from "@/context/ConfirmContext";
-import {
-  fetchAdminEvents,
-  deleteAdminEvent,
-} from "@/context/adminEventsSlice";
+'use client';
+import { useState, useEffect } from 'react';
+import { Calendar, Plus, Trash2, MapPin } from 'lucide-react';
+import axiosInstance from '@/services/axiosInstance';
 
-import EventHeader from "@/components/admin/events/EventHeader";
-import EmptyState from "@/components/admin/events/EmptyState";
-import EventModal from "@/components/admin/events/EventModal";
-
-export default function ManageEvents() {
-  const { events, loading, isLoaded } = useSelector(
-    (state) => state.adminEvents
-  );
-  const dispatch = useDispatch();
-  const confirm = useConfirm();
-  const navigate = useRouter(); 
+export default function AdminEventsPage() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null);
+  const [formData, setFormData] = useState({
+    title: '', description: '', date_time: '', location: '', type: 'Virtual', image_url: ''
+  });
 
   useEffect(() => {
-    if (!isLoaded) {
-      dispatch(fetchAdminEvents());
-    }
-  }, [dispatch, isLoaded]);
+    fetchEvents();
+  }, []);
 
-  const openCreateModal = () => {
-    setEditingEvent(null);
-    setIsModalOpen(true);
+  const fetchEvents = async () => {
+    try {
+      const res = await axiosInstance.get('/events');
+      setEvents(res.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const openEditModal = (event) => {
-    setEditingEvent(event);
-    setIsModalOpen(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axiosInstance.post('/events', {
+        ...formData,
+        date_time: new Date(formData.date_time).toISOString()
+      });
+      setIsModalOpen(false);
+      setFormData({ title: '', description: '', date_time: '', location: '', type: 'Virtual', image_url: '' });
+      fetchEvents();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error creating event');
+    }
   };
 
   const handleDelete = async (id) => {
-    const isConfirmed = await confirm({
-      title: "Delete Event",
-      message:
-        "Are you sure you want to delete this event? This will also remove the image from Cloudinary.",
-    });
-
-    if (!isConfirmed) return;
-
+    if (!confirm('Delete this event?')) return;
     try {
-      await dispatch(deleteAdminEvent(id)).unwrap();
-      dispatch(fetchAdminEvents());
-    } catch {
-      // Error handled in thunk
+      await axiosInstance.delete(`/events/${id}`);
+      fetchEvents();
+    } catch (err) {
+      alert('Error deleting');
     }
   };
 
   return (
-    <div className="p-8 lg:p-10 font-sans text-text min-h-full relative">
-      <EventHeader
-        openCreateModal={openCreateModal}
-        onRefresh={() => dispatch(fetchAdminEvents())}
-        loading={loading}
-      />
+    <div className='p-8 max-w-6xl mx-auto'>
+      <div className='flex justify-between items-center mb-8'>
+        <h1 className='text-3xl font-bold font-headline text-text flex items-center gap-3'>
+          <Calendar className="text-orange-500" /> Manage Events
+        </h1>
+        <button 
+          onClick={() => setIsModalOpen(true)} 
+          className='flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90'
+        >
+          <Plus className='w-4 h-4' /> New Event
+        </button>
+      </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 text-accent animate-spin" />
-        </div>
-      ) : events.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
-          <ul className="divide-y divide-border-soft">
-            {events.map((event) => (
-              <li
-                key={event._id}
-                onClick={() => navigate.push(`/events/${event._id}`)}
-                className="p-4 sm:p-5 hover:bg-card-hover flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors cursor-pointer group"
-              >
-                {/* Event Info (Left Side) */}
-                <div className="flex items-center gap-4 flex-1 overflow-hidden">
-                  <div className="w-16 h-16 rounded-lg bg-card-hover border border-border overflow-hidden shrink-0 flex items-center justify-center">
-                    {event.coverImage ? (
-                      <img
-                        src={event.coverImage}
-                        alt={event.eventName}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <ImageIcon className="w-6 h-6 text-text-muted" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-bold text-text truncate group-hover:text-accent transition-colors">
-                      {event.eventName}
-                    </h3>
-                    <div className="flex items-center gap-1.5 text-sm text-text-muted mt-1">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(event.date).toLocaleDateString("en-US", {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                      {" â€¢ "}
-                      {new Date(event.date).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </div>
-                  </div>
-                </div>
+      <div className='bg-card border border-border rounded-xl overflow-hidden'>
+        <table className='w-full text-left'>
+          <thead className='bg-card-hover'>
+            <tr>
+              <th className='p-4 text-text-muted font-semibold'>Event Title</th>
+              <th className='p-4 text-text-muted font-semibold'>Date & Time</th>
+              <th className='p-4 text-text-muted font-semibold'>Type/Location</th>
+              <th className='p-4 text-text-muted font-semibold text-right'>Actions</th>
+            </tr>
+          </thead>
+          <tbody className='divide-y divide-border'>
+            {events.length === 0 ? (
+              <tr><td colSpan="4" className="p-8 text-center text-text-muted">No events created yet.</td></tr>
+            ) : (
+              events.map(e => (
+                <tr key={e.id}>
+                  <td className='p-4 font-bold text-text'>{e.title}</td>
+                  <td className='p-4 text-text text-sm'>
+                    {new Date(e.date_time).toLocaleString()}
+                  </td>
+                  <td className='p-4 text-sm text-text-muted'>
+                    <span className="bg-bg border border-border px-2 py-1 rounded text-xs uppercase mr-2">{e.type}</span>
+                    {e.location}
+                  </td>
+                  <td className='p-4 text-right flex justify-end gap-2'>
+                    <button onClick={() => handleDelete(e.id)} className='p-2 text-red-500 hover:bg-red-500/10 rounded'><Trash2 className='w-4 h-4'/></button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
-                {/* Actions (Right Side) */}
-                <div
-                  className="flex items-center gap-2 sm:ml-auto"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    onClick={() => openEditModal(event)}
-                    className="p-2 text-text-muted hover:text-accent hover:bg-accent/10 rounded-lg transition-colors"
-                    title="Edit Event"
-                  >
-                    <Edit className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(event._id)}
-                    className="p-2 text-text-muted hover:text-danger hover:bg-danger/10 rounded-lg transition-colors"
-                    title="Delete Event"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Form Modal for Creating/Editing */}
       {isModalOpen && (
-        <EventModal
-          setIsModalOpen={setIsModalOpen}
-          editingEvent={editingEvent}
-        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card w-full max-w-lg rounded-xl border border-border shadow-2xl p-6">
+            <h2 className="text-xl font-bold mb-4">New Event</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm text-text-muted mb-1">Title</label>
+                <input required type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-bg border border-border rounded px-3 py-2 text-text" />
+              </div>
+              <div>
+                <label className="block text-sm text-text-muted mb-1">Description</label>
+                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-bg border border-border rounded px-3 py-2 text-text h-20" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-text-muted mb-1">Date & Time</label>
+                  <input required type="datetime-local" value={formData.date_time} onChange={e => setFormData({...formData, date_time: e.target.value})} className="w-full bg-bg border border-border rounded px-3 py-2 text-text" />
+                </div>
+                <div>
+                  <label className="block text-sm text-text-muted mb-1">Type</label>
+                  <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full bg-bg border border-border rounded px-3 py-2 text-text">
+                    <option value="Virtual">Virtual</option>
+                    <option value="In-Person">In-Person</option>
+                    <option value="Hybrid">Hybrid</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-text-muted mb-1">Location (Link or Address)</label>
+                <input type="text" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full bg-bg border border-border rounded px-3 py-2 text-text" />
+              </div>
+              <div>
+                <label className="block text-sm text-text-muted mb-1">Banner Image URL</label>
+                <input type="url" value={formData.image_url} onChange={e => setFormData({...formData, image_url: e.target.value})} className="w-full bg-bg border border-border rounded px-3 py-2 text-text" />
+              </div>
+              
+              <div className="flex justify-end gap-3 mt-6">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-text-muted hover:bg-card-hover rounded">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-accent text-white rounded hover:bg-accent/90">Create Event</button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

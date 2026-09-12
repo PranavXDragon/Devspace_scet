@@ -1,6 +1,6 @@
 # API Reference
 
-This document contains the complete API reference for the CodeX Club Backend.
+This document contains the complete API reference for the DevSpace Club Backend.
 
 ---
 

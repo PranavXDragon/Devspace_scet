@@ -1,6 +1,6 @@
-# CodeX Documentation
+# DevSpace Documentation
 
-This directory houses the comprehensive documentation for the CodeX project, detailing architecture, security, deployment, and API design.
+This directory houses the comprehensive documentation for the DevSpace project, detailing architecture, security, deployment, and API design.
 
 ## Documentation Index
 

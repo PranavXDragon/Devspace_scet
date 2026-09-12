@@ -1,6 +1,6 @@
 import axios from "axios";
-import { setError, setSuccess } from "@/context/messageSlice";
-import { setLogout } from "@/context/authSlice";
+import { setError, setSuccess } from "../context/messageSlice";
+import { setLogout } from "../context/authSlice";
 
 let store;
 export const injectStore = (_store) => {
@@ -20,9 +20,12 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use(async (config) => {
+  console.log("Axios Request:", config.url);
+  console.log("getTokenFn exists?", !!getTokenFn);
   if (getTokenFn) {
     try {
       const token = await getTokenFn();
+      console.log("Retrieved token length:", token ? token.length : 0);
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

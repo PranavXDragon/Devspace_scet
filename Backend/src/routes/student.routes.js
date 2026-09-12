@@ -1,17 +1,14 @@
 import { Router } from 'express';
 import { registerStudent } from '../controllers/student.controller.js';
-import { loginStudent, verifyOtp, logoutStudent, getStudentDashboard } from '../controllers/studentAuth.controller.js';
+import { getStudentDashboard } from '../controllers/studentAuth.controller.js';
 import { verifyStudentJWT } from '../middlewares/studentAuth.middleware.js';
 
 const router = Router();
 
-// Public routes
+// Public routes (We keep registerStudent if they still need to apply/register initially)
 router.route('/register').post(registerStudent);
-router.route('/login').post(loginStudent);
-router.route('/verify-otp').post(verifyOtp);
-router.route('/logout').post(logoutStudent);
 
-// Protected routes
+// Protected routes (Handled by Clerk middleware internally)
 router.route('/dashboard').get(verifyStudentJWT, getStudentDashboard);
 
 export default router;

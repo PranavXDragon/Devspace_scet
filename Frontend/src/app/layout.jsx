@@ -1,4 +1,4 @@
-﻿export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic';
 import { ClerkProvider } from '@clerk/nextjs'
 import AppProvider from '@/components/providers/AppProvider';
 import { JetBrains_Mono, Oswald, Playfair_Display } from 'next/font/google';
@@ -17,7 +17,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" className="dark" suppressHydrationWarning>
         <body className={`${jetbrains.variable} ${oswald.variable} ${playfair.variable}`}>
           <AppProvider>
             {children}
@@ -27,3 +27,4 @@ export default function RootLayout({ children }) {
     </ClerkProvider>
   )
 }
+

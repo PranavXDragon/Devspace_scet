@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setLogout } from "@/context/authSlice";
 
 export default function DashboardLayout({ children }) {
@@ -33,10 +33,23 @@ export default function DashboardLayout({ children }) {
   const location = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const { user, isAuthResolved } = useSelector((state) => state.auth);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (isAuthResolved && !user && location !== "/admin/login") {
+      navigate.push("/admin/login");
+    }
+  }, [user, isAuthResolved, location, navigate]);
+
   // Close sidebar on route change (mobile)
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [location]);
+
+  if (location === "/admin/login") {
+    return <>{children}</>;
+  }
 
   const navItems = [
     {
@@ -47,6 +60,7 @@ export default function DashboardLayout({ children }) {
     },
     { name: "Registrations", path: "/admin/registrations", icon: Users },
     { name: "Events", path: "/admin/events", icon: Calendar },
+    { name: "Attendance", path: "/admin/attendance", icon: Scan },
     { name: "Team Roster", path: "/admin/team", icon: ShieldCheck },
     { name: "Question Bank", path: "/admin/questions", icon: Code },
     { name: "Resources", path: "/admin/resources", icon: Library },
@@ -110,7 +124,6 @@ export default function DashboardLayout({ children }) {
                     ? "bg-accent/10 text-accent relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-accent before:rounded-r-md"
                     : "text-text-muted hover:bg-card-hover hover:text-text"
                 }`
-              }`
               }
             >
               <item.icon className="w-5 h-5" />

@@ -14,7 +14,12 @@ const Navbar = ({ layout }) => {
   const location = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const isDark = theme === "dark";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close mobile menu automatically when the route changes
   useEffect(() => {
@@ -88,18 +93,22 @@ const Navbar = ({ layout }) => {
           </span>
 
           {/* Theme Toggle Button */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer text-text hover:bg-card-hover hover:shadow-sm"
-            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {isDark ? (
-              <Sun className="w-5 h-5 text-accent" />
-            ) : (
-              <Moon className="w-5 h-5 text-text" />
-            )}
-          </button>
+          {mounted ? (
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer text-text hover:bg-card-hover hover:shadow-sm"
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDark ? (
+                <Sun className="w-5 h-5 text-accent" />
+              ) : (
+                <Moon className="w-5 h-5 text-text" />
+              )}
+            </button>
+          ) : (
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-full" />
+          )}
 
           {/* Desktop CTA Buttons */}
           <div className="hidden lg:flex items-center gap-3">
@@ -123,13 +132,21 @@ const Navbar = ({ layout }) => {
               </SignUpButton>
             </>)}
             {userId && (
-              <UserButton 
-                appearance={{
-                  elements: {
-                    userButtonAvatarBox: "w-10 h-10"
-                  }
-                }}
-              />
+              <>
+                <Link
+                  href="/student"
+                  className="flex items-center justify-center h-10 px-6 rounded-full bg-accent/10 text-accent font-sans text-sm font-bold tracking-wider uppercase hover:bg-accent/20 transition-all border border-accent/20 cursor-pointer"
+                >
+                  Dashboard
+                </Link>
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: "w-10 h-10"
+                    }
+                  }}
+                />
+              </>
             )}
           </div>
 
@@ -240,14 +257,23 @@ const Navbar = ({ layout }) => {
               </SignUpButton>
             </>)}
             {userId && (
-              <div className="flex justify-center w-full">
-                <UserButton 
-                  appearance={{
-                    elements: {
-                      userButtonAvatarBox: "w-11 h-11"
-                    }
-                  }}
-                />
+              <div className="flex flex-col items-center gap-4 w-full">
+                <Link
+                  href="/student"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center h-11 w-full rounded-lg bg-accent/10 text-accent font-sans text-sm font-bold tracking-wider uppercase hover:bg-accent/20 transition-all border border-accent/20 cursor-pointer"
+                >
+                  Dashboard
+                </Link>
+                <div className="flex justify-center w-full">
+                  <UserButton 
+                    appearance={{
+                      elements: {
+                        userButtonAvatarBox: "w-11 h-11"
+                      }
+                    }}
+                  />
+                </div>
               </div>
             )}
           </div>

@@ -151,7 +151,7 @@ const logoutStudent = asyncHandler(async (req, res) => {
 });
 
 const getStudentDashboard = asyncHandler(async (req, res) => {
-  const email = req.student.email;
+  const email = req.clerkUser.emailAddresses[0].emailAddress;
 
   const [
     { data: registrations },
@@ -163,17 +163,29 @@ const getStudentDashboard = asyncHandler(async (req, res) => {
     supabase.from('certificates').select('*').eq('studentEmail', email).order('created_at', { ascending: false }),
   ]);
 
+  const clerkName = req.clerkUser.firstName ? `${req.clerkUser.firstName} ${req.clerkUser.lastName || ''}`.trim() : 'Developer';
+  
+  const profile = req.student ? {
+    name: req.student.name,
+    email: req.student.email,
+    studentId: req.student.studentId,
+    course: req.student.course,
+    year: req.student.year,
+    semester: req.student.semester,
+    phone: req.student.phone
+  } : {
+    name: clerkName,
+    email: email,
+    studentId: 'Not Registered',
+    course: 'N/A',
+    year: 'N/A',
+    semester: 'N/A',
+    phone: 'N/A'
+  };
+
   return res.status(200).json(
     new ApiResponse(200, {
-      profile: {
-        name: req.student.name,
-        email: req.student.email,
-        studentId: req.student.studentId,
-        course: req.student.course,
-        year: req.student.year,
-        semester: req.student.semester,
-        phone: req.student.phone
-      },
+      profile,
       registrations: registrations || [],
       boardingPasses: boardingPasses || [],
       certificates: certificates || []

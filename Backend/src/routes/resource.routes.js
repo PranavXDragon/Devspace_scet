@@ -7,7 +7,7 @@ import {
     updateResource, 
     deleteResource 
 } from '../controllers/resource.controller.js';
-import { verifyJWT } from '../middlewares/auth.middleware.js';
+import { verifyAdmin } from '../middlewares/adminAuth.middleware.js';
 
 const router = Router();
 
@@ -16,7 +16,7 @@ const router = Router();
 router.route('/published').get(getPublishedResources);
 
 // All other resource management routes require Admin JWT
-router.use(verifyJWT);
+router.use(verifyAdmin);
 
 router.route('/')
     .get(getAllResources)

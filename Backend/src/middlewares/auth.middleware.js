@@ -1,4 +1,11 @@
-import { requireAuth } from '@clerk/express';
+import { getAuth } from '@clerk/express';
+import { ApiError } from '../utils/ApiError.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
-// Re-export requireAuth as verifyJWT so that existing routes don't break
-export const verifyJWT = requireAuth();
+export const verifyJWT = asyncHandler(async (req, res, next) => {
+  const auth = getAuth(req);
+  if (!auth || !auth.userId) {
+    throw new ApiError(401, 'Unauthorized request');
+  }
+  next();
+});

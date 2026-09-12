@@ -6,7 +6,7 @@ import {
   deleteMessage,
   replyToMessage,
 } from '../controllers/contact.controller.js';
-import { verifyJWT } from '../middlewares/auth.middleware.js';
+import { verifyAdmin } from '../middlewares/adminAuth.middleware.js';
 
 const router = Router();
 
@@ -14,7 +14,7 @@ const router = Router();
 router.route('/').post(submitContactForm);
 
 // Secured routes (Admin only)
-router.use(verifyJWT);
+router.use(verifyAdmin);
 
 router.route('/').get(getAllContactMessages);
 router.route('/:id').delete(deleteMessage);

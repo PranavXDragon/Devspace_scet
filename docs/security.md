@@ -1,492 +1,144 @@
-# Security
+# Security Architecture & Best Practices
 
-This document describes the security measures implemented in the CodeX Club Backend, identifies current limitations, and provides recommendations for improving security and code quality.
+This document describes the comprehensive security measures implemented across the DevSpace platform, identifies known limitations, and provides actionable recommendations for maintaining a hardened production environment.
 
-The goal of this document is to help developers understand the project's security architecture and follow best practices when contributing to the codebase.
-
----
-
-# Security Overview
-
-The backend follows a layered security approach.
-
-Security is implemented through:
-
-- Secure authentication
-- Session management
-- Request validation
-- HTTP security headers
-- Rate limiting
-- NoSQL injection protection
-- Bot protection
-- Secure error handling
+The goal of this document is to help developers understand the project's layered security architecture and strictly follow best practices when contributing to the codebase.
 
 ---
 
-# Security Layers
+## The Onion Architecture (Defense in Depth)
 
-```text
-Client
-   │
-   ▼
-HTTPS
-   │
-   ▼
-Helmet Security Headers
-   │
-   ▼
-Rate Limiter
-   │
-   ▼
-CORS
-   │
-   ▼
-Mongo Sanitization
-   │
-   ▼
-Authentication
-   │
-   ▼
-Authorization
-   │
-   ▼
-Database
+DevSpace employs a layered security model (Defense in Depth). An attacker must bypass multiple independent security controls to breach the system.
+
+```mermaid
+graph TD
+    Client([Client Request])
+    
+    subgraph "Edge Network"
+        CF[Cloudflare Turnstile]
+        WAF[Web Application Firewall]
+    end
+    
+    subgraph "Application Layer (Next.js & Express)"
+        Helmet[Helmet Security Headers]
+        RateLimit[IP Rate Limiting]
+        CORS[CORS Policy]
+        Sanitize[MongoDB Sanitization]
+    end
+    
+    subgraph "Identity & Access Management"
+        Clerk[Clerk Identity Provider]
+        JWT[Custom Admin JWT + OTP]
+        RLS[Supabase Row Level Security]
+    end
+    
+    subgraph "Data Layer"
+        Supabase[(Supabase Database)]
+    end
+
+    Client --> CF
+    CF --> WAF
+    WAF --> Helmet
+    Helmet --> RateLimit
+    RateLimit --> CORS
+    CORS --> Sanitize
+    Sanitize --> Clerk
+    Sanitize --> JWT
+    Clerk --> RLS
+    JWT --> RLS
+    RLS --> Supabase
 ```
 
 ---
 
-# Implemented Security Features
+## 1. Edge & Network Security
 
-## Password Hashing
+### Cloudflare Turnstile (Bot Protection)
+All public endpoints (such as Student Registration) are protected by Cloudflare Turnstile.
+- **Benefit:** Invisibly blocks automated scripts and headless browsers without frustrating real students with traditional CAPTCHAs.
+- **Implementation:** Verified via `verifyTurnstileToken` in the backend before any database insertion occurs.
 
-Administrator passwords are securely hashed before being stored in the database.
+### Rate Limiting
+Public API endpoints are protected using request rate limiting to prevent DDoS and Brute Force attacks.
+- **Limit:** 100 requests per IP every 15 minutes.
+- **Benefit:** Mitigates automated scraping and credential stuffing.
 
-Benefits:
-
-- Plain-text passwords are never stored.
-- Protects user credentials if the database is compromised.
-
----
-
-## OTP Hashing
-
-One-Time Passwords (OTPs) are also hashed before storage.
-
-Benefits:
-
-- OTP values cannot be recovered from the database.
-- Even if the database is leaked, OTPs remain protected.
+> [!WARNING]
+> **In-Memory Limitation:** The current rate limiter is stored in application RAM. If the Node.js server restarts, the counters reset. For true horizontal scaling, consider migrating this to a Redis store.
 
 ---
 
-## JWT Authentication
+## 2. Application Layer Security
 
-The backend uses JSON Web Tokens (JWT) for administrator authentication.
+### HTTP Security Headers (Helmet)
+The Express backend uses Helmet to automatically inject security headers:
+- `Strict-Transport-Security` (Enforces HTTPS)
+- `X-Frame-Options` (Prevents Clickjacking)
+- `X-DNS-Prefetch-Control`
+- `Content-Security-Policy`
 
-Features:
+### CORS (Cross-Origin Resource Sharing)
+The backend strictly defines which frontend origins are permitted to communicate with it.
+- **Configuration:** `origin = process.env.CORS_ORIGIN` with `credentials = true`.
+- **Benefit:** Prevents unauthorized external websites from making API requests on behalf of an authenticated user.
 
-- Signed using a secret key
-- Configurable expiration time
-- Used for all protected routes
-
----
-
-## HTTP Only Cookies
-
-Authentication tokens are stored in **HTTP Only Cookies**.
-
-Benefits:
-
-- JavaScript cannot access the token.
-- Reduces the risk of XSS token theft.
-- Cookies are automatically sent with authenticated requests.
-
----
-
-## Database Session Management
-
-Every successful login creates a session in the database.
-
-Benefits:
-
-- Multiple device support
-- Session tracking
-- Individual session termination
-- Logout immediately invalidates the session
-
----
-
-## Helmet
-
-Helmet automatically adds security-related HTTP headers.
-
-Provides protection against common browser-based attacks and improves overall application security.
-
----
-
-## Rate Limiting
-
-Public API endpoints are protected using request rate limiting.
-
-Configuration:
-
-| Property | Value |
-|----------|-------|
-| Window | 15 Minutes |
-| Limit | 100 Requests per IP |
-
-Benefits:
-
-- Reduces brute-force attacks
-- Helps prevent API abuse
-- Protects public endpoints
-
----
-
-## MongoDB Sanitization
-
+### MongoDB & Supabase Sanitization
 Incoming requests are sanitized before reaching the database.
+- **Benefit:** Protects against NoSQL and SQL Injection attacks by stripping malicious operators (e.g., `$gt`, `$ne`) from the request body, query, and parameters.
 
-Protects against malicious MongoDB operators such as:
-
-```text
-$gt
-$ne
-$where
-```
-
-Benefits:
-
-- Prevents NoSQL Injection attacks.
-- Sanitizes request body, query, headers, and parameters.
+### Payload Size Limits
+The Express backend restricts incoming JSON payloads to a maximum of `16 KB`.
+- **Benefit:** Prevents oversized payload attacks (like Billion Laughs or massive JSON blobs) from exhausting server memory.
 
 ---
 
-## Cloudflare Turnstile
+## 3. Identity & Access Security
 
-Public registration endpoints use Cloudflare Turnstile for bot protection.
+DevSpace uses a **Dual-Door Authentication** model. For full details, see [`authentication.md`](./authentication.md).
 
-Benefits:
+### Student Security (Clerk)
+- **Passwordless:** Students use Email OTPs or Social Logins, eliminating weak passwords.
+- **Passkeys:** Supported for biometric logins (Windows Hello, FaceID).
 
-- Prevents automated registrations.
-- Reduces spam submissions.
-- Blocks common bot attacks.
+### Admin Security (Custom JWT)
+- **2FA:** Requires both a strong password and a time-sensitive Email OTP.
+- **Argon2 / Bcrypt Hashing:** Passwords and OTPs are cryptographically hashed in the database. Plain-text is **never** stored.
+- **HTTP-Only Cookies:** The `adminToken` is stored in an HTTP-Only cookie, making it 100% invisible to frontend JavaScript and immune to XSS token theft.
 
----
-
-## Error Handling
-
-The application returns consistent error responses.
-
-Development:
-
-- Includes stack traces for debugging.
-
-Production:
-
-- Stack traces are hidden.
-- Sensitive implementation details are not exposed.
+> [!TIP]
+> **TTL Indexes for OTPs:** The `tokens` table utilizes Supabase Time-To-Live (TTL) functionality or cron jobs to automatically purge expired OTPs after 10 minutes.
 
 ---
 
-## Request Size Limit
+## 4. Database Security
 
-The backend limits incoming request payloads.
+### Row Level Security (RLS)
+The absolute final line of defense is Supabase RLS.
+- **Implementation:** Every single table in the database has RLS enabled.
+- **Benefit:** Even if the Express backend was completely bypassed or compromised, the database itself refuses unauthorized queries. Only queries executed with the `service_role` key (which is securely kept in the backend environment variables) can bypass RLS.
 
-Maximum request body size:
-
-```text
-16 KB
-```
-
-Benefits:
-
-- Helps prevent oversized payload attacks.
-- Reduces unnecessary memory usage.
+> [!IMPORTANT]
+> **Linter Warnings are Expected:** You may see "RLS Enabled No Policy" warnings in the Supabase Linter. Because DevSpace relies entirely on the Express backend (via `service_role`) to access data, the lack of public RLS policies is an intentional, highly-secure architectural choice.
 
 ---
 
-## TTL Indexes
+## 5. Known Vulnerabilities & Roadmap
 
-MongoDB TTL (Time-To-Live) indexes automatically remove expired records.
+While the system is highly secure for production, developers should be aware of the following roadmap items:
 
-Currently used for:
-
-- Login sessions
-- OTP records
-
-Benefits:
-
-- Automatic cleanup
-- Reduced database size
-- No manual deletion required
+| Vulnerability / Limitation | Risk Level | Planned Remediation |
+| :--- | :--- | :--- |
+| **Default Admin Credentials** | High | Never deploy with `admin123`. Ensure `.env` contains a cryptographically secure default password before initialization. |
+| **Raw HTML in Descriptions** | Medium | Event descriptions currently allow raw HTML. Ensure the frontend strictly uses DOMPurify or a similar sanitizer before rendering to prevent XSS. |
+| **Lack of Schema Validation** | Low | Replace manual `if (!email)` checks with a robust validation library like Zod or Joi to ensure strict type safety on API inputs. |
+| **In-Memory Rate Limiting** | Low | Migrate `express-rate-limit` from memory to Redis if deploying across multiple server instances (e.g., Kubernetes). |
 
 ---
 
-# Current Security Limitations
-
-The project is secure for typical production use, but there are several areas that can be improved.
-
----
-
-## Default Administrator Credentials
-
-Current behavior:
-
-The initial administrator password defaults to:
-
-```text
-admin123
-```
-
-### Risk
-
-If developers forget to update the `.env` file before deployment, the application may create an administrator account with weak credentials.
-
-### Recommendation
-
-- Require custom credentials during deployment.
-- Never deploy using default passwords.
-
----
-
-## In-Memory Rate Limiting
-
-Current behavior:
-
-Request counters are stored in application memory.
-
-### Risk
-
-Counters reset whenever the server restarts.
-
-### Recommendation
-
-Use a distributed store such as Redis for production deployments.
-
----
-
-## Request Logging in Production
-
-Current behavior:
-
-Morgan logs requests in every environment.
-
-### Risk
-
-- Unnecessary performance overhead
-- Sensitive request information may appear in logs
-
-### Recommendation
-
-Enable request logging only during development or configure production logging appropriately.
-
----
-
-## Cloudinary Public ID Handling
-
-Current behavior:
-
-Cloudinary public IDs are extracted by parsing image URLs.
-
-### Risk
-
-URL structures may change, making deletion unreliable.
-
-### Recommendation
-
-Store both:
-
-- Image URL
-- Cloudinary Public ID
-
-inside the database.
-
----
-
-## Input Validation
-
-Current behavior:
-
-Most request validation is performed manually.
-
-### Risk
-
-Validation logic becomes repetitive and harder to maintain.
-
-### Recommendation
-
-Use a schema validation library such as:
-
-- Joi
-- Zod
-- Yup
-
-for centralized and consistent request validation.
-
----
-
-## Transaction ID Validation
-
-Current behavior:
-
-Transaction IDs accept any string.
-
-### Risk
-
-Invalid or malformed values may be stored.
-
-### Recommendation
-
-Validate transaction IDs using predefined formats or regular expressions.
-
----
-
-## HTML Content in Event Descriptions
-
-Current behavior:
-
-Event descriptions may contain raw HTML.
-
-### Risk
-
-If rendered without sanitization on the frontend, this could lead to Cross-Site Scripting (XSS) attacks.
-
-### Recommendation
-
-Sanitize HTML before rendering or use a trusted HTML sanitization library.
-
----
-
-# Code Quality Review
-
-The following observations focus on maintainability and performance rather than security.
-
----
-
-## Repeated Cloudinary Logic
-
-Current behavior:
-
-Cloudinary URL parsing is repeated across multiple controllers.
-
-### Recommendation
-
-Move the shared logic into a reusable utility function.
-
-Benefits:
-
-- Less duplicated code
-- Easier maintenance
-- Consistent behavior
-
----
-
-## Email Processing
-
-Current behavior:
-
-Emails are sent asynchronously without delaying API responses.
-
-Benefits:
-
-- Faster API responses
-- Better user experience
-- Email failures do not interrupt successful operations
-
----
-
-## Bulk Certificate Generation
-
-Current behavior:
-
-Certificates are generated one at a time.
-
-### Limitation
-
-Large batches may take longer than necessary.
-
-### Recommendation
-
-Consider parallel processing using:
-
-```javascript
-Promise.allSettled()
-```
-
-when appropriate.
-
----
-
-## Pagination
-
-Some endpoints currently return every document.
-
-Examples:
-
-- Team Members
-- Events
-- Contact Messages
-
-### Limitation
-
-Performance may degrade as data grows.
-
-### Recommendation
-
-Implement pagination for endpoints expected to return large datasets.
-
----
-
-## Admin Seeding
-
-The administrator seeding process safely checks whether an administrator already exists before creating one.
-
-Benefits:
-
-- Safe to execute during every application startup.
-- Prevents duplicate administrator accounts.
-
----
-
-# Security Best Practices
-
-When contributing to the project:
-
-- Never store secrets in source code.
-- Use strong JWT secrets.
-- Keep dependencies up to date.
-- Validate all user input.
-- Sanitize HTML before rendering.
-- Restrict CORS origins in production.
-- Rotate credentials periodically.
-- Avoid exposing stack traces in production.
-- Monitor active administrator sessions.
-
----
-
-# Future Improvements
-
-The following enhancements can further strengthen the project:
-
-- Redis-backed rate limiting
-- Refresh token rotation
-- CSRF protection
-- Security event logging
-- Audit logs for administrator actions
-- Role-based access control (RBAC)
-- Request validation using Joi or Zod
-- Automated security testing
-- Content Security Policy (CSP)
-
----
-
-# Related Documentation
-
-| Document | Description |
-|----------|-------------|
-| `authentication.md` | Authentication and session management |
-| `middleware.md` | Middleware pipeline and security middleware |
-| `environment.md` | Environment configuration |
-| `deployment.md` | Production deployment guide |
-| `development-guide.md` | Development standards and best practices |
+## Security Checklist for Contributors
+
+Before submitting a Pull Request, ensure you have verified the following:
+- [ ] No secrets, API keys, or JWT tokens are hardcoded in the source code.
+- [ ] New API endpoints are wrapped in the appropriate middleware (`verifyStudentJWT` or `verifyAdmin`).
+- [ ] User input is never trusted. All parameters are validated before querying the database.
+- [ ] You have not disabled Row Level Security (RLS) on any new Supabase tables.

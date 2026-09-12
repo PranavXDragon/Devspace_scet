@@ -1,288 +1,99 @@
 # Environment Variables
 
-This document explains all environment variables required by the CodeX Club Backend.
+This document explains all environment variables required by the DevSpace Monorepo. 
 
-Environment variables allow the application to be configured without changing the source code. They store sensitive information such as database credentials, API secrets, and third-party service configuration.
-
----
-
-# Getting Started
-
-Create a new `.env` file in the project root.
-
-```text
-backend/
-│
-├── .env
-├── .env.example
-├── package.json
-└── src/
-```
-
-Copy the sample configuration.
-
-```bash
-cp .env.example .env
-```
-
-Then replace the placeholder values with your own configuration.
+Environment variables allow the application to be securely configured without hardcoding secrets into the source code. Because DevSpace is a monorepo, configuration is split between the **Frontend** and the **Backend**.
 
 ---
 
-# Environment Variables
+## 1. Frontend Configuration (`/Frontend/.env.local`)
 
-## Server Configuration
+The Next.js application requires environment variables to connect to Clerk (Authentication) and the backend API.
 
-These variables configure the Express server.
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes | Public key for the Clerk frontend SDK. | `pk_test_...` |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | Yes | Route for Student Login. | `/sign-in` |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | Yes | Route for Student Registration. | `/sign-up` |
+| `NEXT_PUBLIC_API_URL` | Yes | The URL of the Express Backend. | `http://localhost:5000/api/v1` |
 
+> [!WARNING]  
+> **Public vs Private Variables**  
+> In Next.js, only variables prefixed with `NEXT_PUBLIC_` are bundled and sent to the browser. Never prefix sensitive secrets (like API keys) with `NEXT_PUBLIC_`.
+
+---
+
+## 2. Backend Configuration (`/Backend/.env`)
+
+The Express.js backend requires extensive configuration to connect to Supabase, Clerk, Cloudinary, and SMTP servers.
+
+### 2.1 Server Configuration
 | Variable | Required | Description | Default |
 |----------|----------|-------------|---------|
-| `NODE_ENV` | No | Application environment | `development` |
-| `PORT` | No | Backend server port | `5000` |
-| `SERVER_URL` | No | Backend server URL | `http://localhost:5000` |
-| `CORS_ORIGIN` | No | Allowed frontend origin | `*` |
+| `NODE_ENV` | No | Application environment (`development` or `production`) | `development` |
+| `PORT` | No | Backend Express server port | `5000` |
+| `CORS_ORIGIN` | No | Allowed frontend origin for CORS policies | `*` |
 
-Example
-
-```env
-NODE_ENV=development
-PORT=5000
-SERVER_URL=http://localhost:5000
-CORS_ORIGIN=http://localhost:5173
-```
-
----
-
-## Database
-
-MongoDB connection configuration.
+### 2.2 Supabase Database
+We use Supabase as our PostgreSQL provider.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `MONGODB_URI` | Yes | MongoDB connection string |
+| `SUPABASE_URL` | Yes | The project URL (local or cloud) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | The master key that bypasses RLS. |
 
-Example
+> [!CAUTION]  
+> **Never expose the Service Role Key!**  
+> The `SUPABASE_SERVICE_ROLE_KEY` has absolute power over your database, bypassing all Row Level Security (RLS). It must remain strictly in the backend `.env`.
 
-```env
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/codex
-```
+### 2.3 Clerk Authentication (Student)
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CLERK_SECRET_KEY` | Yes | Used by the backend Clerk SDK to verify incoming student JWTs. |
 
----
-
-## JWT Authentication
-
-Used for administrator authentication and session management.
+### 2.4 Custom JWT Authentication (Admin)
+Used for the custom administrator authentication flow.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `ACCESS_TOKEN_SECRET` | Yes | Secret used to sign JWT tokens |
-| `ACCESS_TOKEN_EXPIRY` | Yes | JWT expiration time |
+| `ACCESS_TOKEN_SECRET` | Yes | Cryptographic secret used to sign Admin JWT cookies. |
+| `ACCESS_TOKEN_EXPIRY` | Yes | JWT expiration time (e.g., `10d`). |
 
-Example
-
-```env
-ACCESS_TOKEN_SECRET=your-super-secret-key
-ACCESS_TOKEN_EXPIRY=10d
-```
-
----
-
-## Cloudinary
-
-Cloudinary stores uploaded images.
-
-Used for:
-
-- Event Cover Images
-- Team Member Photos
+### 2.5 Cloudinary (Media Storage)
+Cloudinary stores uploaded images (Event Covers, Team Member Photos).
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CLOUDINARY_CLOUD_NAME` | Yes | Cloudinary cloud name |
+| `CLOUDINARY_CLOUD_NAME` | Yes | Cloudinary cloud identifier |
 | `CLOUDINARY_API_KEY` | Yes | Cloudinary API key |
 | `CLOUDINARY_API_SECRET` | Yes | Cloudinary API secret |
 
-Example
-
-```env
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=xxxxxxxxxxxx
-CLOUDINARY_API_SECRET=xxxxxxxxxxxxxxxx
-```
-
----
-
-## SMTP Email Configuration
-
-SMTP credentials are used for sending emails.
-
-Used for:
-
-- Login OTP
-- Registration Updates
-- Certificate Emails
+### 2.6 SMTP Email Services
+Used for sending Admin Login OTPs and Student notifications.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `SMTP_HOST` | Yes | SMTP server host |
+| `SMTP_HOST` | Yes | SMTP server host (e.g., `smtp.mailtrap.io`) |
 | `SMTP_PORT` | Yes | SMTP server port |
 | `SMTP_USER` | Yes | SMTP username |
 | `SMTP_PASSWORD` | Yes | SMTP password |
-| `FROM_EMAIL` | Yes | Sender email address |
-| `FROM_NAME` | Yes | Sender display name |
-
-Example
-
-```env
-SMTP_HOST=smtp.mailtrap.io
-SMTP_PORT=2525
-SMTP_USER=your_username
-SMTP_PASSWORD=your_password
-
-FROM_EMAIL=noreply@codex.com
-FROM_NAME="CodeX Team"
-```
+| `FROM_EMAIL` | Yes | Sender email address (e.g., `noreply@devspace.com`) |
+| `FROM_NAME` | Yes | Sender display name (e.g., `DevSpace Team`) |
 
 ---
 
-## Default Administrator
+## 3. Best Practices & Security
 
-These values are used only during the initial admin seeding process.
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ADMIN_USERNAME` | No | Initial administrator username |
-| `ADMIN_PASSWORD` | No | Initial administrator password |
-
-Example
-
-```env
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
-```
-
-> **Note**
->
-> These variables are only used when creating the first administrator account.
+- **Do NOT Commit Secrets:** Never commit `.env` or `.env.local` to Git. Ensure they are listed in your `.gitignore`.
+- **Use Examples:** If you add a new required variable, add a placeholder for it in `.env.example` so other developers know it's required.
+- **Rotate Secrets:** Periodically rotate your `ACCESS_TOKEN_SECRET` and Clerk keys in production to maintain a hardened security posture.
 
 ---
 
-## Frontend Configuration
-
-Used when generating links that point to the frontend application.
-
-Examples include:
-
-- Certificate Verification
-- Email Links
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `FRONTEND_URL` | Yes | Frontend application URL |
-
-Example
-
-```env
-FRONTEND_URL=http://localhost:5173
-```
-
----
-
-## Cloudflare Turnstile
-
-Cloudflare Turnstile protects public forms from automated bots.
-
-Currently used for:
-
-- Student Registration
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `TURNSTILE_SECRET_KEY` | No | Cloudflare Turnstile secret key |
-
-Example
-
-```env
-TURNSTILE_SECRET_KEY=your_turnstile_secret
-```
-
-> During local development, this value can be left empty if bot protection is disabled.
-
----
-
-# Complete Example
-
-```env
-# Server
-NODE_ENV=development
-PORT=5000
-SERVER_URL=http://localhost:5000
-CORS_ORIGIN=http://localhost:5173
-
-# Database
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/codex
-
-# JWT
-ACCESS_TOKEN_SECRET=your-super-secret-access-token-key
-ACCESS_TOKEN_EXPIRY=10d
-
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-
-# SMTP
-SMTP_HOST=smtp.mailtrap.io
-SMTP_PORT=2525
-SMTP_USER=your_smtp_user
-SMTP_PASSWORD=your_smtp_password
-FROM_EMAIL=noreply@codex.com
-FROM_NAME="CodeX Team"
-
-# Admin
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
-
-# Frontend
-FRONTEND_URL=http://localhost:5173
-
-# Turnstile
-TURNSTILE_SECRET_KEY=your_turnstile_secret
-```
-
----
-
-# Best Practices
-
-- Never commit the `.env` file to Git.
-- Commit only the `.env.example` file.
-- Use strong, randomly generated JWT secrets.
-- Rotate secrets periodically.
-- Store production credentials securely.
-- Use different credentials for development and production.
-- Keep API keys and passwords private.
-
----
-
-# Production Checklist
-
-Before deploying, verify the following:
-
-- All required environment variables are configured.
-- MongoDB connection string is correct.
-- JWT secret is secure.
-- Cloudinary credentials are valid.
-- SMTP credentials can send emails.
-- Frontend URL points to the production frontend.
-- CORS origin is restricted to trusted domains.
-
----
-
-# Related Documentation
+## Related Documentation
 
 | Document | Description |
 |----------|-------------|
-| `getting-started.md` | Local project setup |
-| `authentication.md` | JWT and authentication flow |
-| `deployment.md` | Production deployment guide |
-| `security.md` | Security recommendations |
+| [`getting-started.md`](./getting-started.md) | Local monorepo setup instructions |
+| [`deployment.md`](./deployment.md) | Production deployment guide |
+| [`security.md`](./security.md) | Security recommendations & Threat Models |

@@ -1,325 +1,124 @@
-# Authentication
+# Authentication Architecture
 
-This document explains how authentication works in the CodeX Club Backend, including the login process, OTP verification, JWT authentication, session management, and protected routes.
-
----
-
-# Authentication Overview
-
-The backend uses a **two-step authentication system** to securely authenticate administrators.
-
-Authentication consists of:
-
-1. Password Verification
-2. Email OTP Verification
-3. JWT Cookie Authentication
-4. Session Validation
-
-This approach adds an extra layer of security by requiring both the correct password and a one-time password (OTP).
+This document explains the **Dual-Door Authentication Architecture** used in the DevSpace platform. To guarantee maximum security and an optimized user experience, the application completely separates the Student login flow from the Administrator login flow.
 
 ---
 
-# Authentication Flow
+## Architecture Overview
 
-```text
-                Admin Login
+The system employs two entirely decoupled identity providers:
 
-                     │
-                     ▼
+1. **Student Authentication (Frontend-Led):** Powered by [Clerk](https://clerk.com).
+2. **Admin Authentication (Backend-Led):** Powered by a custom Express.js JWT & Email OTP flow.
 
-           Enter Admin Password
+This separation ensures that a compromise in the public-facing Student identity provider (Clerk) cannot result in administrative access to the backend or Supabase database.
 
-                     │
-                     ▼
-
-        Password Verified by Server
-
-                     │
-                     ▼
-
-        OTP Sent to Registered Email
-
-                     │
-                     ▼
-
-             Enter OTP Code
-
-                     │
-                     ▼
-
-          OTP Successfully Verified
-
-                     │
-                     ▼
-
-      JWT Generated & Stored in Cookie
-
-                     │
-                     ▼
-
-        Session Created in Database
-
-                     │
-                     ▼
-
-      Admin Can Access Protected APIs
+```mermaid
+graph TD
+    User([User])
+    
+    subgraph "Dual-Door Authentication"
+        StudentDoor[Student Portal]
+        AdminDoor[Admin Dashboard]
+    end
+    
+    User -->|Student Login| StudentDoor
+    User -->|Admin Login| AdminDoor
+    
+    StudentDoor -->|Clerk Auth| Clerk[Clerk Identity Provider]
+    Clerk -->|JWT| NextJS[Next.js Frontend]
+    NextJS -->|API Request| Express[Express Backend]
+    
+    AdminDoor -->|Email/Password| BackendAuth[Backend Custom Auth]
+    BackendAuth -->|Send OTP| Email[Email Service]
+    Email -->|Submit OTP| JWT[Admin JWT HTTP-Only Cookie]
 ```
 
 ---
 
-# Authentication Components
+## 1. Student Authentication (Clerk)
 
-| Component | Purpose |
-|------------|---------|
-| Password | Verifies administrator identity |
-| OTP | Second verification factor |
-| JWT | Authenticates future requests |
-| HTTP Only Cookie | Securely stores JWT |
-| Session | Tracks active logins |
+DevSpace uses **Clerk** to handle all student identity management. 
+
+### Why Clerk?
+Clerk allows for a frictionless onboarding experience. Students can log in using:
+- **Email OTP (Passwordless)**
+- **Social SSO** (GitHub, Google, LinkedIn)
+- **Passkeys** (Fingerprint / FaceID)
+
+> [!NOTE]  
+> **No Database Synchronization Required**  
+> Because the Express backend verifies Clerk JWTs on the fly against the `student_registrations` table, there is zero need to configure Clerk Webhooks to sync user data into Supabase. Clerk acts strictly as an Identity Provider (IdP).
+
+### Student Flow
+1. Student clicks **Sign In** on the Next.js frontend.
+2. Clerk handles the UI, OTP delivery, and session creation.
+3. Next.js retrieves the active Clerk Session JWT.
+4. When requesting backend resources, Next.js sends the Clerk JWT.
+5. The Express backend `verifyStudentJWT` middleware verifies the Clerk token signature.
 
 ---
 
-# Login Process
+## 2. Administrator Authentication (Custom JWT)
 
-Endpoint
+To protect the platform's core infrastructure, Administrators **do not exist** in Clerk. Instead, they use a highly secure, custom-built authentication pipeline stored directly in Supabase.
 
-```http
-POST /api/v1/admin/login
+> [!IMPORTANT]  
+> **Strict Access Control**  
+> Students cannot access the `/admin/login` page, and even if they did, they do not possess the required credentials in the isolated `admins` database table.
+
+### Admin Login Lifecycle
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant Frontend
+    participant Backend
+    participant Supabase
+    participant Email
+
+    Admin->>Frontend: Enter Email & Password
+    Frontend->>Backend: POST /api/admin/login
+    Backend->>Supabase: Verify credentials against `admins` table
+    Supabase-->>Backend: Valid
+    Backend->>Supabase: Generate & Store OTP in `tokens` table
+    Backend->>Email: Send 6-digit OTP to Admin
+    Backend-->>Frontend: 200 OK (OTP Sent)
+    
+    Admin->>Frontend: Enter 6-digit OTP
+    Frontend->>Backend: POST /api/admin/verify-otp
+    Backend->>Supabase: Verify OTP validity & expiration
+    Supabase-->>Backend: Valid
+    Backend->>Backend: Generate Admin JWT
+    Backend-->>Frontend: Set HTTP-Only Cookie (`adminToken`)
 ```
 
-### Purpose
-
-Verifies the administrator password before sending an OTP to the registered email.
-
-### Request
-
-```json
-{
-    "password": "your_password"
-}
-```
-
-### What Happens
-
-1. Password is validated.
-2. OTP is generated.
-3. OTP is sent to the registered email.
-4. User proceeds to OTP verification.
+### Security Features
+- **Two-Factor Authentication (2FA):** Password + Time-sensitive Email OTP.
+- **HTTP-Only Cookies:** The resulting `adminToken` is inaccessible to frontend JavaScript, rendering XSS attacks ineffective against admin sessions.
+- **Role Validation:** The JWT inherently encodes the `role: 'Admin'`, which is verified by the `verifyAdmin` middleware on every protected route.
 
 ---
 
-# OTP Verification
+## Protected Routes & Middleware
 
-Endpoint
+Every backend route is explicitly protected by one of two middlewares:
 
-```http
-POST /api/v1/admin/verify-otp
-```
+### `verifyStudentJWT`
+Used for routes like `/api/student/dashboard`. It verifies the Clerk token and cross-references the student's email against the `student_registrations` table.
 
-### Purpose
+### `verifyAdmin`
+Used for routes like `/api/admin/challenges`. It strictly looks for the `adminToken` HTTP-Only cookie. If the token is missing, expired, or the role is not `Admin`, the request is instantly rejected with a `403 Forbidden`.
 
-Verifies the OTP and completes the login process.
-
-### Request
-
-```json
-{
-    "otp": "123456"
-}
-```
-
-### What Happens
-
-After successful verification:
-
-- JWT token is generated.
-- HTTP Only cookie is created.
-- Login session is stored.
-- Admin becomes authenticated.
+| HTTP Code | Description | Remediation |
+|-----------|-------------|-------------|
+| **401** | Missing or Invalid Token | Redirect to respective login page. |
+| **403** | Insufficient Role | Reject request (e.g., Student trying to access Admin route). |
+| **404** | User Not Found | Ensure user exists in `student_registrations` or `admins`. |
 
 ---
 
-# JWT Authentication
-
-After login, the backend generates a **JSON Web Token (JWT)**.
-
-The token is automatically stored inside an **HTTP Only Cookie**.
-
-Because the cookie is HTTP Only:
-
-- JavaScript cannot access it.
-- It is automatically included in future requests.
-- It helps protect against XSS attacks.
-
----
-
-# Protected Routes
-
-Any route marked as **Protected** requires a valid authenticated session.
-
-Examples include:
-
-```text
-PATCH  /api/v1/admin/profile
-POST   /api/v1/admin/change-password
-GET    /api/v1/admin/sessions
-POST   /api/v1/events
-PATCH  /api/v1/events/:id
-DELETE /api/v1/events/:id
-```
-
-If authentication fails, the request is rejected.
-
----
-
-# Session Management
-
-Every successful login creates a new session.
-
-Each session represents a unique logged-in device.
-
-The backend can track:
-
-- Device
-- Browser
-- Operating System
-- IP Address
-- Login Time
-
-This allows administrators to view and manage active sessions.
-
----
-
-# Viewing Active Sessions
-
-Endpoint
-
-```http
-GET /api/v1/admin/sessions
-```
-
-Returns all active administrator sessions.
-
-Example information:
-
-- Current device
-- Browser
-- Operating system
-- Login timestamp
-- IP address
-
----
-
-# Logout
-
-Endpoint
-
-```http
-POST /api/v1/admin/logout
-```
-
-Logging out performs two actions:
-
-- Deletes the active session
-- Clears the authentication cookie
-
-After logout, protected endpoints can no longer be accessed.
-
----
-
-# Authentication Middleware
-
-Protected routes use authentication middleware to verify every request.
-
-The middleware performs the following checks:
-
-1. Reads JWT from the cookie.
-2. Verifies token validity.
-3. Confirms the session exists.
-4. Attaches authenticated admin information to the request.
-5. Allows access to the requested resource.
-
-If any check fails, access is denied.
-
----
-
-# Authentication Lifecycle
-
-```text
-Login
-   │
-   ▼
-Password Verified
-   │
-   ▼
-OTP Verified
-   │
-   ▼
-JWT Generated
-   │
-   ▼
-Cookie Created
-   │
-   ▼
-Session Stored
-   │
-   ▼
-Protected API Access
-   │
-   ▼
-Logout
-   │
-   ▼
-Session Deleted
-   │
-   ▼
-Cookie Cleared
-```
-
----
-
-# Security Features
-
-The authentication system includes multiple security measures.
-
-- Two-factor authentication using OTP
-- JWT-based authentication
-- HTTP Only authentication cookies
-- Session management
-- Password verification before login
-- Protected administrative routes
-
----
-
-# Authentication Errors
-
-| HTTP Code | Description |
-|-----------|-------------|
-| 400 | Invalid request data |
-| 401 | Authentication failed |
-| 403 | Access denied |
-| 404 | Resource not found |
-| 429 | Too many requests |
-| 500 | Internal server error |
-
----
-
-# Authentication Best Practices
-
-- Never share administrator credentials.
-- Always log out after using shared devices.
-- Keep JWT cookies secure.
-- Verify every protected request through authentication middleware.
-- Regularly review active sessions and remove unknown devices.
-
----
-
-# Related Documentation
-
-| Document | Description |
-|----------|-------------|
-| `api-reference.md` | Complete REST API reference |
-| `database.md` | Database collections and schemas |
-| `middleware.md` | Authentication middleware |
-| `security.md` | Security features and protections |
-| `getting-started.md` | Local development setup |
+## Best Practices
+1. **Never** attempt to merge Admins into Clerk. The physical separation is your strongest defense mechanism.
+2. **Session Lifetimes:** Clerk student sessions are set to 7 days to reduce friction. Admin JWTs are set to a longer duration (10 days) but can be instantly revoked by rotating the `ACCESS_TOKEN_SECRET`.
+3. **Local Testing:** Ensure your `.env.local` contains valid Clerk API keys and SMTP credentials, otherwise, OTP emails will fail to send during the Admin login flow.

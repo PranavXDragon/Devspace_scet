@@ -9,10 +9,12 @@ export const updateProfile = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, {}, 'Profile update should be handled via Clerk dashboard'));
 });
 
+import { getAuth } from '@clerk/express';
+
 export const getCurrentAdmin = asyncHandler(async (req, res) => {
-  // Just return the Clerk userId
+  const auth = getAuth(req);
   return res.status(200).json(
-    new ApiResponse(200, { id: req.auth.userId }, 'Current admin fetched successfully')
+    new ApiResponse(200, { id: auth.userId }, 'Current admin fetched successfully')
   );
 });
 

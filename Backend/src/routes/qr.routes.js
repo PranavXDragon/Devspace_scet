@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { generateCustomQR, getCustomQRs, deleteCustomQR } from "../controllers/qr.controller.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyAdmin } from "../middlewares/adminAuth.middleware.js";
 
 const router = Router();
 
-router.use(verifyJWT); // Ensure only authenticated admins can generate custom QR codes
+router.use(verifyAdmin); // Ensure only authenticated admins can generate custom QR codes
 
 router.route("/generate").post(generateCustomQR);
 router.route("/").get(getCustomQRs);

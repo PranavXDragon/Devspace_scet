@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 import React from "react";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import contentData from "@/data/content.json";
+import contentData from "../data/content.json";
 
 const GlobalError = ({ error, reset }) => {
   const { error: errorContent } = contentData;
@@ -21,7 +21,7 @@ const GlobalError = ({ error, reset }) => {
       </p>
 
       <div className="mt-6 w-24 h-24 flex items-center justify-center rounded-full shadow-md animate-pulse bg-accent/20 border border-accent/30 shadow-[0_4px_6px_rgba(46,197,212,0.25)]">
-        <span className="text-4xl">😢</span>
+        <span className="text-4xl">??</span>
       </div>
 
       <button onClick={() => reset()}

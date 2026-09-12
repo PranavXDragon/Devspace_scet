@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { generateBulkBoardingPasses, verifyBoardingPass } from '../controllers/boardingPass.controller.js';
-import { verifyJWT } from '../middlewares/auth.middleware.js';
+import { verifyAdmin } from '../middlewares/adminAuth.middleware.js';
 
 const router = Router();
 
@@ -8,6 +8,6 @@ const router = Router();
 router.route('/verify/:boardingPassId').get(verifyBoardingPass);
 
 // Secured admin route
-router.route('/generate-bulk').post(verifyJWT, generateBulkBoardingPasses);
+router.route('/generate-bulk').post(verifyAdmin, generateBulkBoardingPasses);
 
 export default router;

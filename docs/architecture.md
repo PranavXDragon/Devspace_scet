@@ -1,6 +1,6 @@
 # Architecture
 
-This document provides a comprehensive overview of the CodeX Backend architecture. It explains how the application is structured, how requests flow through the system, how different modules interact, and the architectural decisions behind the implementation.
+This document provides a comprehensive overview of the DevSpace Backend architecture. It explains how the application is structured, how requests flow through the system, how different modules interact, and the architectural decisions behind the implementation.
 
 ---
 
@@ -18,7 +18,7 @@ This document provides a comprehensive overview of the CodeX Backend architectur
 
 # Project Overview
 
-The CodeX Backend is a RESTful API built using **Node.js**, **Express.js**, and **MongoDB**. It powers the official CodeX Club platform by providing secure APIs for authentication, student registration, event management, certificate generation, team management, and contact management.
+The DevSpace Backend is a RESTful API built using **Node.js**, **Express.js**, and **MongoDB**. It powers the official DevSpace Club platform by providing secure APIs for authentication, student registration, event management, certificate generation, team management, and contact management.
 
 The application follows a modular architecture inspired by the MVC (Model–View–Controller) pattern with additional utility and middleware layers. This separation of concerns makes the project easier to maintain, extend, and test.
 
@@ -1306,7 +1306,7 @@ Each layer has a single responsibility, making the backend easier to understand,
 
 # Authentication Architecture
 
-Authentication is one of the most critical components of the CodeX Backend. Unlike traditional stateless JWT authentication, this application combines **Password Authentication**, **OTP Verification**, **JWT Tokens**, and **Database-backed Sessions** to provide stronger security and better session management.
+Authentication is one of the most critical components of the DevSpace Backend. Unlike traditional stateless JWT authentication, this application combines **Password Authentication**, **OTP Verification**, **JWT Tokens**, and **Database-backed Sessions** to provide stronger security and better session management.
 
 The complete authentication process is divided into multiple stages.
 
@@ -1367,7 +1367,7 @@ Even if an attacker knows the administrator's password, they still require the O
 
 # Session Architecture
 
-Unlike most JWT-based applications, CodeX stores every active login session inside MongoDB.
+Unlike most JWT-based applications, DevSpace stores every active login session inside MongoDB.
 
 ```text
 Admin Login
@@ -1466,7 +1466,7 @@ The drawback:
 
 A stolen JWT remains valid until expiration.
 
-CodeX instead performs:
+DevSpace instead performs:
 
 ```
 JWT
@@ -1917,7 +1917,7 @@ The following enhancements could further improve the architecture:
 
 # Architecture Summary
 
-The CodeX Backend follows a modular, layered architecture designed around maintainability, security, and scalability.
+The DevSpace Backend follows a modular, layered architecture designed around maintainability, security, and scalability.
 
 Key architectural characteristics include:
 

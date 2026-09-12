@@ -11,9 +11,8 @@ import { injectGetToken } from "@/services/axiosInstance";
 
 function ClerkTokenInjector() {
   const { getToken } = useAuth();
-  useEffect(() => {
-    injectGetToken(getToken);
-  }, [getToken]);
+  // Inject synchronously during render so it's ready before child component effects run
+  injectGetToken(getToken);
   return null;
 }
 

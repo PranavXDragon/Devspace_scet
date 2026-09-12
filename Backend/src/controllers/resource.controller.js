@@ -29,6 +29,7 @@ export const getPublishedResources = asyncHandler(async (req, res) => {
         .order('created_at', { ascending: false });
 
     if (error) {
+        console.error("Supabase Error in getPublishedResources:", error);
         throw new ApiError(500, "Failed to fetch published resources");
     }
 

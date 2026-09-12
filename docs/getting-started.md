@@ -1,423 +1,140 @@
-# Getting Started
+# Getting Started with DevSpace
 
-This guide explains how to set up and run the **CodeX Backend** on your local machine for development or in a production environment.
+This guide provides step-by-step instructions for setting up the DevSpace Monorepo (Next.js Frontend + Express.js Backend + Supabase) on your local machine for development.
 
 ---
 
-# Prerequisites
+## 📋 Prerequisites
 
-Before setting up the project, make sure the following software is installed on your system.
+Ensure you have the following software installed before proceeding:
 
-| Software | Recommended Version | Required |
-|-----------|---------------------|----------|
-| Node.js | 22.x LTS or later | ✅ |
-| npm | 10.x or later | ✅ |
-| MongoDB | 8.x or MongoDB Atlas | ✅ |
-| Git | Latest | ✅ |
+| Software | Version | Purpose |
+|----------|---------|---------|
+| **Node.js** | 20.x LTS or 22.x | Runtime for Next.js & Express |
+| **npm** | 10.x+ | Package Manager |
+| **Supabase CLI** | Latest | Local Database Development |
+| **Docker** | Latest | Required by Supabase CLI |
+| **Git** | Latest | Version Control |
 
-Check your installed versions:
+> [!TIP]
+> Ensure Docker Desktop is running before attempting to start the local Supabase instance.
 
+---
+
+## 🚀 1. Clone & Setup
+
+1. **Clone the Monorepo**
+   ```bash
+   git clone <repository-url>
+   cd DevSpace
+   ```
+
+2. **Install Workspace Dependencies**
+   From the root of the monorepo, run:
+   ```bash
+   npm run install:all
+   ```
+   *(This will run `npm install` in both the `/Frontend` and `/Backend` directories concurrently).*
+
+---
+
+## 🗄️ 2. Database Setup (Supabase Local)
+
+We treat our database as code. Instead of relying on a shared remote database for development, every developer spins up their own local instance of Supabase using Docker.
+
+1. **Initialize Supabase**
+   Navigate to the root directory and start the local database:
+   ```bash
+   npx supabase start
+   ```
+   
+2. **Retrieve Local Keys**
+   Once started, the CLI will output your local API keys and Database URL. Keep these handy.
+   ```text
+   API URL: http://127.0.0.1:54321
+   DB URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+   anon key: eyJh...
+   service_role key: eyJh...
+   ```
+
+3. **Database Migrations**
+   The `supabase start` command automatically applies all SQL migrations located in `supabase/migrations/` and seeds the database using `supabase/seed.sql`. Your database is instantly ready for development!
+
+---
+
+## 🔐 3. Environment Variables
+
+You need to configure environment variables for **both** the Frontend and the Backend.
+
+### Backend Configuration (`/Backend/.env`)
+Navigate to `/Backend` and create an `.env` file from the sample:
 ```bash
-node -v
-npm -v
-git --version
+cd Backend
+cp .env.sample .env
 ```
+Update the `.env` file with your local Supabase credentials and Clerk Secret Keys.
 
----
-
-# System Requirements
-
-Minimum recommended specifications:
-
-- Windows 10/11, Linux, or macOS
-- 4 GB RAM (8 GB recommended)
-- Internet connection
-- MongoDB database (Local or Atlas)
-
----
-
-# Clone the Repository
-
-Clone the backend repository using Git.
-
+### Frontend Configuration (`/Frontend/.env.local`)
+Navigate to `/Frontend` and create an `.env.local` file:
 ```bash
-git clone <repository-url>
+cd ../Frontend
+cp .env.example .env.local
 ```
+Ensure your `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is properly set.
 
-Move into the project directory.
+> [!WARNING]
+> **Never commit your `.env` files.** They contain highly sensitive `service_role` keys and Clerk secrets that grant full administrative access to your instances.
 
+---
+
+## 🏃 4. Running the Application
+
+You can start both the Frontend and Backend simultaneously from the root directory if a root script is configured, or run them in separate terminal tabs:
+
+**Terminal 1: Start Backend**
 ```bash
-cd backend
-```
-
----
-
-# Install Dependencies
-
-Install all required project dependencies.
-
-```bash
-npm install
-```
-
-This installs all packages listed in `package.json`.
-
-### Main Runtime Dependencies
-
-- Express.js
-- MongoDB (Mongoose)
-- JWT Authentication
-- bcryptjs
-- Nodemailer
-- Cloudinary
-- Helmet
-- Multer
-- Morgan
-- Compression
-- Rate Limiter
-
-Development dependencies include:
-
-- Nodemon
-- ESLint
-- Prettier
-
----
-
-# Project Structure
-
-After installation the project structure should look similar to:
-
-```text
-backend/
-│
-├── docs/
-├── src/
-├── package.json
-├── package-lock.json
-├── .env
-├── .env.example
-└── README.md
-```
-
----
-
-# Environment Setup
-
-Create a new environment file.
-
-```bash
-cp .env.example .env
-```
-
-If you're using Windows PowerShell:
-
-```powershell
-copy .env.example .env
-```
-
-Or create the `.env` file manually.
-
-Populate it using your project configuration.
-
-Example:
-
-```env
-PORT=5000
-
-NODE_ENV=development
-
-MONGODB_URI=
-
-ACCESS_TOKEN_SECRET=
-ACCESS_TOKEN_EXPIRY=1d
-
-CORS_ORIGIN=http://localhost:5173
-
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-
-SMTP_HOST=
-SMTP_PORT=
-SMTP_USER=
-SMTP_PASSWORD=
-
-FROM_NAME=CodeX Club
-FROM_EMAIL=
-
-ADMIN_EMAIL=
-ADMIN_PASSWORD=
-
-TURNSTILE_SECRET_KEY=
-
-FRONTEND_URL=http://localhost:5173
-SERVER_URL=http://localhost:5000
-```
-
-> **Important**
->
-> Never commit the `.env` file to Git.
->
-> Only commit `.env.example`.
-
----
-
-# MongoDB Setup
-
-The backend supports both:
-
-- Local MongoDB
-- MongoDB Atlas
-
----
-
-## Option 1 — Local MongoDB
-
-Install MongoDB Community Edition.
-
-Start MongoDB.
-
-Windows
-
-```bash
-net start MongoDB
-```
-
-Linux
-
-```bash
-sudo systemctl start mongod
-```
-
-Use the connection string:
-
-```text
-mongodb://127.0.0.1:27017/codex
-```
-
----
-
-## Option 2 — MongoDB Atlas
-
-1. Create a MongoDB Atlas Cluster.
-2. Create a Database User.
-3. Whitelist your IP Address.
-4. Copy the connection string.
-
-Example:
-
-```text
-mongodb+srv://username:password@cluster.mongodb.net/codex
-```
-
-Paste it into:
-
-```env
-MONGODB_URI=<your-mongodb-uri>
-```
-
----
-
-# Running the Development Server
-
-Start the development server using Nodemon.
-
-```bash
+cd Backend
 npm run dev
 ```
+*The Express server will start on `http://localhost:5000` (or whatever `PORT` is set in `.env`).*
 
-This command runs:
-
+**Terminal 2: Start Frontend**
 ```bash
-nodemon src/server.js
+cd Frontend
+npm run dev
 ```
-
-Nodemon automatically restarts the server whenever files are modified.
-
-If everything is configured correctly, you should see output similar to:
-
-```text
-MongoDB Connected Successfully
-
-Server running on port 5000
-```
+*The Next.js application will start on `http://localhost:3000`.*
 
 ---
 
-# Running the Production Server
+## 🧪 5. Verify Installation
 
-To start the application without Nodemon:
+To confirm everything is working correctly:
 
-```bash
-npm start
-```
-
-This runs:
-
-```bash
-node src/server.js
-```
+1. **Backend Health Check:** Open `http://localhost:5000/api/v1/healthcheck`. You should receive a JSON response indicating the server and database are healthy.
+2. **Frontend UI:** Open `http://localhost:3000` to view the DevSpace landing page.
+3. **Admin Login:** Navigate to `http://localhost:3000/admin/login` and authenticate using the credentials seeded in the `supabase/seed.sql` file.
 
 ---
 
-# Available Scripts
+## 🐛 Troubleshooting
 
-| Command | Description |
-|----------|-------------|
-| `npm install` | Install project dependencies |
-| `npm run dev` | Start development server with Nodemon |
-| `npm start` | Start production server |
-| `npm run format` | Format project using Prettier |
-| `npm test` | Placeholder test script |
+### `supabase start` fails
+- Ensure Docker Desktop is running.
+- Ensure ports `54321` and `54322` are not being used by another local Postgres instance.
 
----
+### JWT Authentication Fails (Admin)
+- Verify `ACCESS_TOKEN_SECRET` exists in the Backend `.env`.
+- Ensure your browser allows cross-origin cookies if testing from a different port.
 
-# Verify Installation
-
-Once the server starts successfully, open your browser or API client.
-
-Health Check Endpoint
-
-```http
-GET /api/v1/healthcheck
-```
-
-Example:
-
-```
-http://localhost:5000/api/v1/healthcheck
-```
-
-A successful response confirms that:
-
-- Express server is running
-- MongoDB connection is established
-- Routes are loaded correctly
+### Clerk Authentication Fails (Student)
+- Ensure both the `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (Frontend) and `CLERK_SECRET_KEY` (Backend) belong to the exact same Clerk instance.
 
 ---
 
-# Development Workflow
+## 📚 Next Steps
 
-Typical development workflow:
-
-1. Pull the latest changes.
-2. Install dependencies if required.
-3. Update your `.env` file.
-4. Start MongoDB.
-5. Run the development server.
-6. Test APIs using Postman or another API client.
-7. Commit your changes.
-8. Push to the repository.
-
----
-
-# Production Build
-
-The backend does not require a build step because it is a Node.js application.
-
-Production deployment generally consists of:
-
-1. Clone the repository.
-
-```bash
-git clone <repository-url>
-```
-
-2. Install dependencies.
-
-```bash
-npm install
-```
-
-3. Configure environment variables.
-
-4. Start the server.
-
-```bash
-npm start
-```
-
-For production environments, it is recommended to:
-
-- Use **PM2** as the process manager.
-- Place the application behind **Nginx** or another reverse proxy.
-- Enable **HTTPS** using SSL/TLS certificates.
-- Store secrets securely.
-- Enable regular database backups.
-- Configure application logging and monitoring.
-
-Detailed deployment instructions are available in the **deployment.md** documentation.
-
----
-
-# Common Issues
-
-## MongoDB Connection Failed
-
-Check:
-
-- MongoDB is running.
-- `MONGODB_URI` is correct.
-- Network access is allowed (Atlas).
-- Database credentials are valid.
-
----
-
-## Port Already in Use
-
-Change the application port in `.env`.
-
-```env
-PORT=5001
-```
-
-or terminate the process using the current port.
-
----
-
-## Cloudinary Upload Errors
-
-Verify:
-
-- Cloud Name
-- API Key
-- API Secret
-
-All Cloudinary credentials must be valid.
-
----
-
-## Email Not Sending
-
-Verify:
-
-- SMTP Host
-- SMTP Port
-- SMTP Username
-- SMTP Password
-
-If using Gmail, use an **App Password** instead of your account password.
-
----
-
-## JWT Authentication Fails
-
-Verify:
-
-- `ACCESS_TOKEN_SECRET` exists.
-- Cookies are enabled.
-- The token has not expired.
-- The session still exists in the database.
-
----
-
-# Next Steps
-
-After successfully setting up the backend, continue with the following documentation:
-
-- **project-structure.md** – Understand the folder organization.
-- **architecture.md** – Learn how the backend is structured internally.
-- **authentication.md** – Understand the authentication and authorization flow.
-- **database.md** – Explore database models and relationships.
-- **api-reference.md** – Complete REST API documentation.
+Once your local environment is running perfectly, check out these architectural documents:
+- [Project Structure](./project-structure.md)
+- [Authentication Architecture](./authentication.md)
+- [Middleware Pipeline](./middleware.md)
