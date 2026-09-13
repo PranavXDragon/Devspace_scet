@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useDispatch, useSelector } from "react-redux";
-import studentService from "../../services/studentService";
+import { studentService } from "../../services/studentService";
 import { setStudentLogout } from "../../context/studentAuthSlice";
 import { useAuth, useUser } from "@clerk/nextjs";
 
