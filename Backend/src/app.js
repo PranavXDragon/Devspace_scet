@@ -115,6 +115,16 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
+// Root route for Vercel deployment check
+app.get("/", (req, res) => {
+  res.status(200).json({ success: true, message: "Devspace Backend API is running!" });
+});
+
+// Handle 404 errors for undefined routes
+app.use((req, res, next) => {
+  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
+});
+
 // error handling middleware (should be added after all routes)
 app.use(errorHandler);
 
