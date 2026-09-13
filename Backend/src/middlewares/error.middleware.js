@@ -35,9 +35,10 @@ const errorHandler = (err, req, res, next) => {
     
     // Mask the message in production for true 500 errors
     let message = error.message || "Internal Server Error";
-    if (process.env.NODE_ENV === "production" && statusCode === 500) {
-      message = "An unexpected server error occurred. Our team has been notified.";
-    }
+    // TEMPORARILY DISABLED MASKING TO DEBUG VERCEL ERROR
+    // if (process.env.NODE_ENV === "production" && statusCode === 500) {
+    //   message = "An unexpected server error occurred. Our team has been notified.";
+    // }
 
     error = new ApiError(statusCode, message, error?.errors || [], err.stack);
   }

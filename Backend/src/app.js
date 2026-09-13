@@ -12,6 +12,9 @@ import { clerkMiddleware } from '@clerk/express';
 
 const app = express();
 
+// Trust Vercel's reverse proxy for rate limiting and IP detection
+app.set('trust proxy', 1);
+
 // Apply Clerk middleware globally
 app.use(clerkMiddleware());
 
