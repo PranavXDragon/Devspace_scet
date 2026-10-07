@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS teams (
 );
 
 -- 3. Team Members Table (max 4 members per team will be enforced by application logic or a trigger)
-CREATE TABLE IF NOT EXISTS team_members (
+CREATE TABLE IF NOT EXISTS project_team_members (
     team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
     student_id UUID NOT NULL REFERENCES student_registrations(id) ON DELETE CASCADE,
     role VARCHAR(50) DEFAULT 'Member' CHECK (role IN ('Leader', 'Member')),

@@ -25,7 +25,7 @@ export const getMyProjects = asyncHandler(async (req, res) => {
     // A student can have personal projects, or team projects if they are in a team.
     // First, find their team id
     const { data: member } = await supabase
-        .from('team_members')
+        .from('project_team_members')
         .select('team_id')
         .eq('student_id', studentId)
         .maybeSingle();

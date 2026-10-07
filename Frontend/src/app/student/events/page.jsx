@@ -17,7 +17,7 @@ export default function EventsPage() {
 
   const fetchEvents = async () => {
     try {
-      const res = await axiosInstance.get(`/events?student_id=${user.publicMetadata.studentId}`);
+      const res = await axiosInstance.get(`/student-events?student_id=${user.publicMetadata.studentId}`);
       setEvents(res.data || []);
     } catch (err) {
       console.error(err);
@@ -28,7 +28,7 @@ export default function EventsPage() {
 
   const toggleRSVP = async (eventId) => {
     try {
-      await axiosInstance.post(`/events/${eventId}/rsvp`, {
+      await axiosInstance.post(`/student-events/${eventId}/rsvp`, {
         student_id: user.publicMetadata.studentId
       });
       fetchEvents();

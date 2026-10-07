@@ -13,7 +13,7 @@ export const getEvents = asyncHandler(async (req, res) => {
     }
 
     const { data: events, error } = await supabase
-        .from('events')
+        .from('student_events')
         .select(selectQuery)
         .order('date_time', { ascending: true }); // upcoming first
 
@@ -39,7 +39,7 @@ export const createEvent = asyncHandler(async (req, res) => {
     }
 
     const { data, error } = await supabase
-        .from('events')
+        .from('student_events')
         .insert([{ title, description, date_time, location, type, image_url }])
         .select()
         .single();
@@ -51,7 +51,7 @@ export const createEvent = asyncHandler(async (req, res) => {
 export const deleteEvent = asyncHandler(async (req, res) => {
     const { id } = req.params;
     
-    const { error } = await supabase.from('events').delete().eq('id', id);
+    const { error } = await supabase.from('student_events').delete().eq('id', id);
     if (error) throw new ApiError(500, "Failed to delete event");
     
     return res.status(200).json(new ApiResponse(200, {}, "Event deleted"));

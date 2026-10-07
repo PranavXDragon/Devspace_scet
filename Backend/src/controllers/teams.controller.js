@@ -12,7 +12,7 @@ export const createTeam = asyncHandler(async (req, res) => {
 
     // Check if student is already in a team
     const { data: existingMember } = await supabase
-        .from('team_members')
+        .from('project_team_members')
         .select('*')
         .eq('student_id', student_id)
         .maybeSingle();
@@ -31,7 +31,7 @@ export const createTeam = asyncHandler(async (req, res) => {
     if (error) throw new ApiError(500, "Failed to create team: " + error.message);
 
     // Add creator as Leader
-    await supabase.from('team_members').insert([{
+    await supabase.from('project_team_members').insert([{
         team_id: team.id,
         student_id: student_id,
         role: 'Leader'
@@ -44,7 +44,7 @@ export const getMyTeam = asyncHandler(async (req, res) => {
     const { studentId } = req.params;
 
     const { data: member } = await supabase
-        .from('team_members')
+        .from('project_team_members')
         .select('team_id')
         .eq('student_id', studentId)
         .maybeSingle();
@@ -57,7 +57,7 @@ export const getMyTeam = asyncHandler(async (req, res) => {
         .from('teams')
         .select(`
             *,
-            team_members (
+            project_team_members (
                 role,
                 joined_at,
                 student_registrations ( id, name, github_username )
@@ -77,7 +77,7 @@ export const joinTeam = asyncHandler(async (req, res) => {
 
     // Check if student already in team
     const { data: existingMember } = await supabase
-        .from('team_members')
+        .from('project_team_members')
         .select('*')
         .eq('student_id', student_id)
         .maybeSingle();
@@ -88,7 +88,7 @@ export const joinTeam = asyncHandler(async (req, res) => {
 
     // Check team size (limit 4)
     const { data: members } = await supabase
-        .from('team_members')
+        .from('project_team_members')
         .select('student_id', { count: 'exact' })
         .eq('team_id', id);
 
@@ -96,7 +96,7 @@ export const joinTeam = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Team is already full (max 4 members).");
     }
 
-    const { error } = await supabase.from('team_members').insert([{
+    const { error } = await supabase.from('project_team_members').insert([{
         team_id: id,
         student_id: student_id,
         role: 'Member'
@@ -112,7 +112,7 @@ export const getAllTeams = asyncHandler(async (req, res) => {
         .from('teams')
         .select(`
             *,
-            team_members ( student_id )
+            project_team_members ( student_id )
         `)
         .order('created_at', { ascending: false });
 

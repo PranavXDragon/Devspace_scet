@@ -25,7 +25,7 @@ export default function ResumePage() {
         axiosInstance.get('/projects') // this returns public showcase, for MVP we'll just filter on client
       ]);
       
-      const myProjects = projects.data.filter(p => p.student_id === studentId || (p.teams && p.teams.team_members?.some(tm => tm.student_id === studentId)));
+      const myProjects = projects.data.filter(p => p.student_id === studentId || (p.teams && p.teams.project_team_members?.some(tm => tm.student_id === studentId)));
 
       setData({
         analytics: analytics.data,

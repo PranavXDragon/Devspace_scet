@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '@/services/axiosInstance';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit2, Trash2, BookOpen, Layers, Video } from 'lucide-react';
-import ConfirmModal from '@/components/common/ConfirmModal';
+import { Plus, Edit2, Trash2, BookOpen, Layers } from 'lucide-react';
 
 export default function AdminLearningPage() {
   const [roadmaps, setRoadmaps] = useState([]);

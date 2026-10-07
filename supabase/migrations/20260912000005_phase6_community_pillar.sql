@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS discussion_replies (
 );
 
 -- 3. Events Table
-CREATE TABLE IF NOT EXISTS events (
+CREATE TABLE IF NOT EXISTS student_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS events (
 
 -- 4. Event RSVPs Table
 CREATE TABLE IF NOT EXISTS event_rsvps (
-    event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    event_id UUID NOT NULL REFERENCES student_events(id) ON DELETE CASCADE,
     student_id UUID NOT NULL REFERENCES student_registrations(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (event_id, student_id)

@@ -91,9 +91,9 @@ export default function TeamsPage() {
             </div>
           </div>
           
-          <h3 className="text-lg font-semibold text-text mb-4">Team Members ({myTeam.team_members?.length}/4)</h3>
+          <h3 className="text-lg font-semibold text-text mb-4">Team Members ({myTeam.project_team_members?.length}/4)</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {myTeam.team_members?.map(m => (
+            {myTeam.project_team_members?.map(m => (
               <div key={m.student_registrations.id} className="flex items-center gap-4 bg-bg border border-border-soft p-4 rounded-lg">
                 <div className="w-10 h-10 rounded-full bg-accent/20 text-accent flex items-center justify-center font-bold">
                   {m.student_registrations.name.substring(0, 1)}
@@ -117,7 +117,7 @@ export default function TeamsPage() {
                 <p className="text-text-muted col-span-full">No teams created yet.</p>
               ) : (
                 teams.map(t => {
-                  const membersCount = t.team_members?.length || 0;
+                  const membersCount = t.project_team_members?.length || 0;
                   const isFull = membersCount >= 4;
                   return (
                     <div key={t.id} className="bg-card border border-border-soft p-6 rounded-xl flex flex-col hover:border-blue-500/50 transition-colors">

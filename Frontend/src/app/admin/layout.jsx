@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   FileText,
   MessageSquare,
-  Activity,
   LogOut,
   User,
   Menu,
@@ -18,7 +17,6 @@ import {
   Ticket,
   Code,
   Library,
-  Settings,
   Scan,
   Megaphone
 } from "lucide-react";
