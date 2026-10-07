@@ -37,9 +37,11 @@ const Navbar = ({ layout }) => {
           className="flex items-center gap-3 shrink-0 group"
           aria-label="Devspace Club home"
         >
-          <span className="font-sans font-bold text-lg md:text-xl tracking-[0.22em] text-text group-hover:text-accent transition-colors mt-0.5">
-            DEVSPACE
-          </span>
+          <img 
+            src="/logo.png" 
+            alt="Devspace" 
+            className="h-6 md:h-8 w-auto object-contain group-hover:opacity-80 transition-opacity" 
+          />
         </Link>
 
         {/* 2. Desktop Navigation */}
