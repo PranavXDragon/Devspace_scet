@@ -183,7 +183,7 @@ export default function StudentLayout({ children }) {
       >
         <div className="p-8 pb-4 flex items-center justify-between">
           <div>
-            <img src="/logo.png" alt="Devspace" className="h-6 w-auto" />
+            <img src="/logo.png" alt="Devspace" className="h-12 w-auto object-contain scale-110 origin-left" />
             <p className="mt-1 text-[11px] font-semibold text-accent uppercase tracking-widest">
               Student Portal
             </p>
@@ -271,7 +271,7 @@ export default function StudentLayout({ children }) {
               <Menu className="w-6 h-6" />
             </button>
             <div className="flex flex-col">
-              <img src="/logo.png" alt="Devspace" className="h-5 w-auto" />
+              <img src="/logo.png" alt="Devspace" className="h-10 w-auto object-contain scale-110 origin-left" />
             </div>
           </div>
         </header>

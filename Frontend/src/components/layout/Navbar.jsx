@@ -40,7 +40,7 @@ const Navbar = ({ layout }) => {
           <img 
             src="/logo.png" 
             alt="Devspace" 
-            className="h-6 md:h-8 w-auto object-contain group-hover:opacity-80 transition-opacity" 
+            className="h-12 md:h-16 w-auto object-contain group-hover:opacity-80 transition-opacity" 
           />
         </Link>
 

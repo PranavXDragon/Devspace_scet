@@ -97,7 +97,7 @@ export default function DashboardLayout({ children }) {
       >
         <div className="p-8 pb-4 flex items-center justify-between">
           <div>
-            <img src="/logo.png" alt="Devspace" className="h-8 w-auto mb-1" />
+            <img src="/logo.png" alt="Devspace" className="h-12 w-auto object-contain scale-110 origin-left mb-1" />
             <p className="mt-1 text-[11px] font-semibold text-accent uppercase tracking-widest">
               Admin Portal
             </p>
@@ -150,7 +150,7 @@ export default function DashboardLayout({ children }) {
               <Menu className="w-6 h-6" />
             </button>
             <div className="flex flex-col">
-              <img src="/logo.png" alt="Devspace" className="h-5 w-auto" />
+              <img src="/logo.png" alt="Devspace" className="h-10 w-auto object-contain scale-110 origin-left" />
             </div>
           </div>
         </header>
