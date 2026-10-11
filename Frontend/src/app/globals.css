@@ -131,3 +131,116 @@
     clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
   }
 }
+
+/* Clerk Cyberpunk Theme Overrides */
+.cl-modalBackdrop {
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.cl-card,
+.cl-modalContent {
+  background-color: #0d1117 !important;
+  border: 1px solid rgba(46, 197, 212, 0.25) !important;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.85), 0 0 35px rgba(46, 197, 212, 0.15) !important;
+  border-radius: 1rem !important;
+  color: #f0f6fc !important;
+}
+
+.cl-headerTitle {
+  color: #ffffff !important;
+  font-family: var(--font-sans), Oswald, sans-serif !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+}
+
+.cl-headerSubtitle {
+  color: #94a3b8 !important;
+}
+
+.cl-socialButtonsBlockButton {
+  background-color: #161b22 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  transition: all 0.2s ease !important;
+}
+
+.cl-socialButtonsBlockButton:hover {
+  background-color: #1f2937 !important;
+  border-color: rgba(46, 197, 212, 0.5) !important;
+}
+
+.cl-socialButtonsBlockButtonText {
+  color: #ffffff !important;
+}
+
+.cl-dividerLine {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.cl-dividerText {
+  color: #64748b !important;
+  font-family: var(--font-mono), monospace !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+}
+
+.cl-formFieldLabel {
+  color: #cbd5e1 !important;
+  font-family: var(--font-mono), monospace !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+.cl-formFieldInput {
+  background-color: #161b22 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border-radius: 0.75rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.cl-formFieldInput:focus {
+  border-color: #2EC5D4 !important;
+  box-shadow: 0 0 0 2px rgba(46, 197, 212, 0.25) !important;
+}
+
+.cl-formButtonPrimary {
+  background-color: #2EC5D4 !important;
+  color: #0b0f17 !important;
+  font-family: var(--font-sans), Oswald, sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 0 20px rgba(46, 197, 212, 0.35) !important;
+  border: none !important;
+  border-radius: 0.75rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.cl-formButtonPrimary:hover {
+  background-color: #26a8b5 !important;
+  box-shadow: 0 0 30px rgba(46, 197, 212, 0.55) !important;
+}
+
+.cl-footerActionLink {
+  color: #2EC5D4 !important;
+  font-weight: 600 !important;
+}
+
+.cl-footerActionLink:hover {
+  color: #55d6e3 !important;
+  text-decoration: underline !important;
+}
+
+.cl-footerActionText {
+  color: #94a3b8 !important;
+}
+
+.cl-footer {
+  background: transparent !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+

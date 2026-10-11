@@ -14,9 +14,11 @@ export const metadata = {
   description: 'DevSpace Coding Club Portal',
 }
 
+import { clerkAppearance } from '@/config/clerkTheme';
+
 export default function RootLayout({ children }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider appearance={clerkAppearance}>
       <html lang="en" className="dark" suppressHydrationWarning>
         <body className={`${jetbrains.variable} ${oswald.variable} ${playfair.variable}`}>
           <AppProvider>

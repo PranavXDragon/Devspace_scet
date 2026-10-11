@@ -115,7 +115,7 @@ const Navbar = ({ layout }) => {
           {/* Desktop CTA Buttons */}
           <div className="hidden lg:flex items-center gap-3">
             {!userId && (<>
-              <SignInButton mode="modal">
+              <SignInButton mode="modal" fallbackRedirectUrl="/student/dashboard">
                 <button
                   type="button"
                   className="flex items-center justify-center gap-2 h-10 px-6 rounded-full bg-card/40 backdrop-blur-md text-text border border-border-soft hover:border-accent/50 hover:bg-card/60 shadow-sm font-sans text-sm font-bold tracking-wider uppercase transition-all cursor-pointer"
@@ -123,7 +123,7 @@ const Navbar = ({ layout }) => {
                   <span>Sign In</span>
                 </button>
               </SignInButton>
-              <SignUpButton mode="modal">
+              <SignUpButton mode="modal" fallbackRedirectUrl="/student/dashboard">
                 <button
                   type="button"
                   className="flex items-center justify-center gap-2 h-10 px-6 rounded-full bg-accent text-bg font-sans text-sm font-bold tracking-wider uppercase hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-accent/20 cursor-pointer border-0"
@@ -240,7 +240,7 @@ const Navbar = ({ layout }) => {
 
           <div className="pt-4 mt-2 border-t border-border flex flex-col gap-4">
             {!userId && (<>
-              <SignInButton mode="modal">
+              <SignInButton mode="modal" fallbackRedirectUrl="/student/dashboard">
                 <button
                   type="button"
                   className="flex items-center justify-center gap-2 h-11 w-full rounded-lg bg-card/40 text-text border border-border-soft font-sans text-sm font-bold tracking-wider uppercase hover:bg-card/60 transition-all shadow-sm cursor-pointer"
@@ -248,7 +248,7 @@ const Navbar = ({ layout }) => {
                   <span>Sign In</span>
                 </button>
               </SignInButton>
-              <SignUpButton mode="modal">
+              <SignUpButton mode="modal" fallbackRedirectUrl="/student/dashboard">
                 <button
                   type="button"
                   className="flex items-center justify-center gap-2 h-11 w-full rounded-lg bg-accent text-bg font-sans text-sm font-bold tracking-wider uppercase hover:opacity-90 transition-all shadow-md border-0 cursor-pointer"

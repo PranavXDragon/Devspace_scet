@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { registrationService } from "@/services/registrationService";
@@ -9,7 +9,7 @@ import PersonalDetailsForm from "@/components/register/PersonalDetailsForm";
 import AcademicDetailsForm from "@/components/register/AcademicDetailsForm";
 import VerificationDetailsForm from "@/components/register/VerificationDetailsForm";
 import contentData from "@/data/content.json";
-import { useUser, useAuth } from "@clerk/nextjs";
+import { useUser, useAuth, RedirectToSignIn } from "@clerk/nextjs";
 
 const Register = () => {
   const { userId } = useAuth();
