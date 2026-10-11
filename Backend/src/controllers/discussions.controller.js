@@ -10,7 +10,7 @@ export const getDiscussions = asyncHandler(async (req, res) => {
         .from('discussions')
         .select(`
             *,
-            student_registrations ( name, avatar_url ),
+            student_registrations ( name ),
             discussion_replies ( id )
         `)
         .order('created_at', { ascending: false });
@@ -26,10 +26,10 @@ export const getDiscussionById = asyncHandler(async (req, res) => {
         .from('discussions')
         .select(`
             *,
-            student_registrations ( name, avatar_url ),
+            student_registrations ( name ),
             discussion_replies ( 
                 *,
-                student_registrations ( name, avatar_url )
+                student_registrations ( name )
             )
         `)
         .eq('id', id)

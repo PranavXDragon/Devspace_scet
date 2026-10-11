@@ -3,21 +3,26 @@ import { useState, useEffect } from 'react';
 import { Trophy, Star, Lock } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
+import { useStudentDashboard } from '../StudentDashboardContext';
 
 export default function AchievementsPage() {
   const { user } = useUser();
+  const { dashboardData } = useStudentDashboard();
+  const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.publicMetadata?.studentId) {
-      fetchAchievements();
-    }
-  }, [user]);
+    fetchAchievements();
+  }, [studentId]);
 
   const fetchAchievements = async () => {
     try {
-      const res = await axiosInstance.get(`/progress/achievements?student_id=${user.publicMetadata.studentId}`);
+      const url = studentId 
+        ? `/progress/achievements?student_id=${studentId}` 
+        : `/progress/achievements`;
+      const res = await axiosInstance.get(url);
       setData(res.data);
     } catch (err) {
       console.error(err);

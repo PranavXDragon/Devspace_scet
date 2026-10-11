@@ -166,21 +166,25 @@ const getStudentDashboard = asyncHandler(async (req, res) => {
   const clerkName = req.clerkUser.firstName ? `${req.clerkUser.firstName} ${req.clerkUser.lastName || ''}`.trim() : 'Developer';
   
   const profile = req.student ? {
+    id: req.student.id,
     name: req.student.name,
     email: req.student.email,
     studentId: req.student.studentId,
     course: req.student.course,
     year: req.student.year,
     semester: req.student.semester,
-    phone: req.student.phone
+    phone: req.student.phone,
+    github_username: req.student.github_username || req.clerkUser.username || null
   } : {
+    id: null,
     name: clerkName,
     email: email,
     studentId: 'Not Registered',
     course: 'N/A',
     year: 'N/A',
     semester: 'N/A',
-    phone: 'N/A'
+    phone: 'N/A',
+    github_username: req.clerkUser.username || null
   };
 
   return res.status(200).json(

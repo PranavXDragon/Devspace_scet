@@ -3,21 +3,24 @@ import { useState, useEffect } from 'react';
 import { Github, GitBranch, Star, GitFork, BookOpen, AlertCircle } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
+import { useStudentDashboard } from '../StudentDashboardContext';
 
 export default function GitDashboard() {
   const { user } = useUser();
+  const { dashboardData } = useStudentDashboard();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (user?.publicMetadata?.studentId) {
-      // In a real app, github_username would be passed in publicMetadata or fetched from student profile.
-      // For this MVP, we assume it's in publicMetadata or we prompt for it.
-      const githubUsername = user.publicMetadata.githubUsername || 'octocat'; // Fallback for MVP testing
-      fetchGitStats(githubUsername);
-    }
-  }, [user]);
+    const githubUsername = 
+      dashboardData?.profile?.github_username || 
+      user?.externalAccounts?.find(a => a.provider === 'oauth_github')?.username || 
+      user?.username || 
+      'pranavxdragon';
+    
+    fetchGitStats(githubUsername);
+  }, [user, dashboardData]);
 
   const fetchGitStats = async (username) => {
     try {

@@ -3,9 +3,13 @@ import { useState, useEffect } from 'react';
 import { MessageSquare, Plus, ThumbsUp, MessageCircle, Trash2, Edit3, X, Check } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
+import { useStudentDashboard } from '../StudentDashboardContext';
 
 export default function DiscussionsPage() {
   const { user } = useUser();
+  const { dashboardData } = useStudentDashboard();
+  const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
+
   const [discussions, setDiscussions] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -46,7 +50,7 @@ export default function DiscussionsPage() {
     e.preventDefault();
     try {
       const tagsArray = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
-      const payload = { ...formData, tags: tagsArray, student_id: user?.publicMetadata?.studentId };
+      const payload = { ...formData, tags: tagsArray, student_id: studentId };
       
       if (editingId) {
         await axiosInstance.patch(`/discussions/${editingId}`, payload);
@@ -69,7 +73,7 @@ export default function DiscussionsPage() {
     if (!confirm('Are you sure you want to delete this discussion?')) return;
     
     try {
-      await axiosInstance.delete(`/discussions/${id}`, { data: { student_id: user?.publicMetadata?.studentId }});
+      await axiosInstance.delete(`/discussions/${id}`, { data: { student_id: studentId }});
       if (activeDiscussion?.id === id) setActiveDiscussion(null);
       fetchDiscussions();
     } catch (err) {
@@ -84,7 +88,7 @@ export default function DiscussionsPage() {
     try {
       await axiosInstance.post(`/discussions/${activeDiscussion.id}/replies`, {
         content: replyContent,
-        student_id: user?.publicMetadata?.studentId
+        student_id: studentId
       });
       setReplyContent('');
       fetchDiscussionDetails(activeDiscussion.id);
@@ -97,7 +101,7 @@ export default function DiscussionsPage() {
   const handleDeleteReply = async (replyId) => {
     if (!confirm('Delete this reply?')) return;
     try {
-      await axiosInstance.delete(`/discussions/replies/${replyId}`, { data: { student_id: user?.publicMetadata?.studentId }});
+      await axiosInstance.delete(`/discussions/replies/${replyId}`, { data: { student_id: studentId }});
       fetchDiscussionDetails(activeDiscussion.id);
       fetchDiscussions();
     } catch (err) {
@@ -143,7 +147,7 @@ export default function DiscussionsPage() {
           </div>
         ) : (
           discussions.map(d => {
-            const isMine = d.student_id === user?.publicMetadata?.studentId;
+            const isMine = d.student_id === studentId;
             return (
               <div 
                 key={d.id} 
@@ -190,7 +194,7 @@ export default function DiscussionsPage() {
             </div>
             
             <div className="flex items-center gap-2">
-              {activeDiscussion.student_id === user?.publicMetadata?.studentId && (
+              {activeDiscussion.student_id === studentId && (
                 <>
                   <button onClick={(e) => openEditModal(activeDiscussion, e)} className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-full"><Edit3 className="w-4 h-4"/></button>
                   <button onClick={(e) => handleDelete(activeDiscussion.id, e)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-full"><Trash2 className="w-4 h-4"/></button>
@@ -217,7 +221,7 @@ export default function DiscussionsPage() {
                         </span>
                         {reply.student_registrations?.name}
                       </div>
-                      {reply.student_id === user?.publicMetadata?.studentId && (
+                      {reply.student_id === studentId && (
                         <button onClick={() => handleDeleteReply(reply.id)} className="text-red-500/50 hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
                       )}
                     </div>

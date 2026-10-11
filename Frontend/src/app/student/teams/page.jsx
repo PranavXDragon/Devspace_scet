@@ -3,9 +3,13 @@ import { useState, useEffect } from 'react';
 import { Users, UserPlus, Shield, Info, ArrowRight } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
+import { useStudentDashboard } from '../StudentDashboardContext';
 
 export default function TeamsPage() {
   const { user } = useUser();
+  const { dashboardData } = useStudentDashboard();
+  const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
+
   const [teams, setTeams] = useState([]);
   const [myTeam, setMyTeam] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,11 +19,16 @@ export default function TeamsPage() {
   const [formData, setFormData] = useState({ name: '', description: '' });
 
   useEffect(() => {
-    if (user?.publicMetadata?.studentId) {
-      fetchTeams();
-      fetchMyTeam();
-    }
-  }, [user]);
+    const loadData = async () => {
+      setLoading(true);
+      await fetchTeams();
+      if (studentId) {
+        await fetchMyTeam();
+      }
+      setLoading(false);
+    };
+    loadData();
+  }, [studentId]);
 
   const fetchTeams = async () => {
     try {
@@ -31,22 +40,25 @@ export default function TeamsPage() {
   };
 
   const fetchMyTeam = async () => {
+    if (!studentId) return;
     try {
-      const res = await axiosInstance.get(`/teams/student/${user.publicMetadata.studentId}`);
+      const res = await axiosInstance.get(`/teams/student/${studentId}`);
       setMyTeam(res.data || null);
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleCreateTeam = async (e) => {
     e.preventDefault();
+    if (!studentId) {
+      alert('Please complete registration to create a team.');
+      return;
+    }
     try {
       await axiosInstance.post('/teams', {
         ...formData,
-        student_id: user.publicMetadata.studentId
+        student_id: studentId
       });
       setIsCreating(false);
       fetchTeams();
@@ -57,9 +69,13 @@ export default function TeamsPage() {
   };
 
   const handleJoinTeam = async (teamId) => {
+    if (!studentId) {
+      alert('Please complete registration to join a team.');
+      return;
+    }
     try {
       await axiosInstance.post(`/teams/${teamId}/join`, {
-        student_id: user.publicMetadata.studentId
+        student_id: studentId
       });
       fetchTeams();
       fetchMyTeam();

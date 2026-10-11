@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/v1/healthcheck",
+      "schedule": "0 0 * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

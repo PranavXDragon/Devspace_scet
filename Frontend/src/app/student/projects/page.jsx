@@ -3,9 +3,13 @@ import { useState, useEffect } from 'react';
 import { FolderDot, Github, ExternalLink, Globe, Plus, ToggleLeft, ToggleRight, X } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
+import { useStudentDashboard } from '../StudentDashboardContext';
 
 export default function ProjectsPage() {
   const { user } = useUser();
+  const { dashboardData } = useStudentDashboard();
+  const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
+
   const [projects, setProjects] = useState([]);
   const [myProjects, setMyProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,10 +20,8 @@ export default function ProjectsPage() {
   const [formData, setFormData] = useState({ title: '', description: '', github_url: '', live_url: '', tags: '', is_public: true });
 
   useEffect(() => {
-    if (user?.publicMetadata?.studentId) {
-      fetchProjects();
-    }
-  }, [user, activeTab]);
+    fetchProjects();
+  }, [studentId, activeTab]);
 
   const fetchProjects = async () => {
     setLoading(true);
@@ -28,8 +30,12 @@ export default function ProjectsPage() {
         const res = await axiosInstance.get('/projects');
         setProjects(res.data || []);
       } else {
-        const res = await axiosInstance.get(`/projects/student/${user.publicMetadata.studentId}`);
-        setMyProjects(res.data || []);
+        if (studentId) {
+          const res = await axiosInstance.get(`/projects/student/${studentId}`);
+          setMyProjects(res.data || []);
+        } else {
+          setMyProjects([]);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -40,12 +46,16 @@ export default function ProjectsPage() {
 
   const handleCreateProject = async (e) => {
     e.preventDefault();
+    if (!studentId) {
+      alert('Please complete registration to add projects.');
+      return;
+    }
     try {
       const tagsArray = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
       await axiosInstance.post('/projects', {
         ...formData,
         tags: tagsArray,
-        student_id: user.publicMetadata.studentId
+        student_id: studentId
       });
       setIsModalOpen(false);
       setFormData({ title: '', description: '', github_url: '', live_url: '', tags: '', is_public: true });

@@ -3,33 +3,37 @@ import { useState, useEffect } from 'react';
 import { FileText, Download, Code, Trophy, Briefcase, GitBranch } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
+import { useStudentDashboard } from '../StudentDashboardContext';
 
 export default function ResumePage() {
   const { user } = useUser();
+  const { dashboardData } = useStudentDashboard();
+  const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.publicMetadata?.studentId) {
-      fetchProfileData();
-    }
-  }, [user]);
+    fetchProfileData();
+  }, [studentId]);
 
   const fetchProfileData = async () => {
     try {
-      const studentId = user.publicMetadata.studentId;
       // Fetch multiple stats concurrently for the resume
       const [analytics, achievements, projects] = await Promise.all([
-        axiosInstance.get(`/progress/analytics?student_id=${studentId}`),
-        axiosInstance.get(`/progress/achievements?student_id=${studentId}`),
-        axiosInstance.get('/projects') // this returns public showcase, for MVP we'll just filter on client
+        axiosInstance.get(studentId ? `/progress/analytics?student_id=${studentId}` : '/progress/analytics').catch(() => ({ data: {} })),
+        axiosInstance.get(studentId ? `/progress/achievements?student_id=${studentId}` : '/progress/achievements').catch(() => ({ data: {} })),
+        axiosInstance.get('/projects').catch(() => ({ data: [] }))
       ]);
       
-      const myProjects = projects.data.filter(p => p.student_id === studentId || (p.teams && p.teams.project_team_members?.some(tm => tm.student_id === studentId)));
+      const projectList = Array.isArray(projects.data) ? projects.data : [];
+      const myProjects = studentId 
+        ? projectList.filter(p => p.student_id === studentId || (p.teams && p.teams.project_team_members?.some(tm => tm.student_id === studentId)))
+        : projectList;
 
       setData({
-        analytics: analytics.data,
-        achievements: achievements.data,
+        analytics: analytics.data || {},
+        achievements: achievements.data || {},
         projects: myProjects
       });
     } catch (err) {

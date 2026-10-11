@@ -1,0 +1,22 @@
+name: Supabase Always-On Keepalive
+
+on:
+  schedule:
+    # Runs at minute 0 past every 12th hour (twice daily)
+    - cron: '0 */12 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping DevSpace Backend & Supabase
+        run: |
+          echo "Pinging healthcheck endpoint to keep Supabase active..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://devspaceb.vercel.app/api/v1/healthcheck)
+          echo "Response code: $STATUS"
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Warning: Healthcheck returned HTTP $STATUS"
+          else
+            echo "Success: Supabase database pinged and active."
+          fi

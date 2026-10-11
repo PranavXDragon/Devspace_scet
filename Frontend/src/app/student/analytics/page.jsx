@@ -3,21 +3,26 @@ import { useState, useEffect } from 'react';
 import { Activity, Target, Zap, TrendingUp } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
+import { useStudentDashboard } from '../StudentDashboardContext';
 
 export default function AnalyticsPage() {
   const { user } = useUser();
+  const { dashboardData } = useStudentDashboard();
+  const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.publicMetadata?.studentId) {
-      fetchAnalytics();
-    }
-  }, [user]);
+    fetchAnalytics();
+  }, [studentId]);
 
   const fetchAnalytics = async () => {
     try {
-      const res = await axiosInstance.get(`/progress/analytics?student_id=${user.publicMetadata.studentId}`);
+      const url = studentId 
+        ? `/progress/analytics?student_id=${studentId}` 
+        : `/progress/analytics`;
+      const res = await axiosInstance.get(url);
       setData(res.data);
     } catch (err) {
       console.error(err);

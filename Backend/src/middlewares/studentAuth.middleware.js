@@ -22,15 +22,51 @@ export const verifyStudentJWT = [
       const email = user.emailAddresses[0].emailAddress;
 
       // Find the student in Supabase by email
-      const { data: student, error: studentError } = await supabase
+      let { data: student, error: studentError } = await supabase
         .from('student_registrations')
         .select('*')
         .eq('email', email)
         .limit(1);
 
+      let studentRecord = student && student.length > 0 ? student[0] : null;
+
+      // Auto-register Clerk user in student_registrations if not yet registered
+      if (!studentRecord) {
+        try {
+          const clerkName = (user.firstName ? `${user.firstName} ${user.lastName || ''}` : 'Developer').trim();
+          const randId = Math.floor(10000 + Math.random() * 90000);
+          const { data: newStudent } = await supabase
+            .from('student_registrations')
+            .insert([{
+              name: clerkName,
+              fatherName: 'N/A',
+              email: email,
+              studentId: `DS-${randId}`,
+              status: 'APPROVED',
+              course: 'B.Tech',
+              year: '1st Year',
+              semester: '1st Sem',
+              section: 'A',
+              set: '1',
+              phone: '0000000000',
+              transactionId: `TXN-AUTO-${randId}`,
+              paymentMode: 'ONLINE',
+              github_username: user.username || null
+            }])
+            .select()
+            .single();
+
+          if (newStudent) {
+            studentRecord = newStudent;
+          }
+        } catch (e) {
+          console.error("Auto-registration error in middleware:", e);
+        }
+      }
+
       // Attach Clerk user and Student record (if exists)
       req.clerkUser = user;
-      req.student = student && student.length > 0 ? student[0] : null;
+      req.student = studentRecord;
       
       next();
     } catch (error) {

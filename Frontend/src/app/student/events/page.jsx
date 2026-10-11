@@ -3,21 +3,26 @@ import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, Ticket } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
+import { useStudentDashboard } from '../StudentDashboardContext';
 
 export default function EventsPage() {
   const { user } = useUser();
+  const { dashboardData } = useStudentDashboard();
+  const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
+
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.publicMetadata?.studentId) {
-      fetchEvents();
-    }
-  }, [user]);
+    fetchEvents();
+  }, [studentId]);
 
   const fetchEvents = async () => {
     try {
-      const res = await axiosInstance.get(`/student-events?student_id=${user.publicMetadata.studentId}`);
+      const url = studentId 
+        ? `/student-events?student_id=${studentId}` 
+        : `/student-events`;
+      const res = await axiosInstance.get(url);
       setEvents(res.data || []);
     } catch (err) {
       console.error(err);
@@ -27,9 +32,13 @@ export default function EventsPage() {
   };
 
   const toggleRSVP = async (eventId) => {
+    if (!studentId) {
+      alert('Please complete registration to RSVP for events.');
+      return;
+    }
     try {
       await axiosInstance.post(`/student-events/${eventId}/rsvp`, {
-        student_id: user.publicMetadata.studentId
+        student_id: studentId
       });
       fetchEvents();
     } catch (err) {
