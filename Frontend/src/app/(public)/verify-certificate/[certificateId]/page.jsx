@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 import { useEffect, useState } from "react";
-import {  useParams  } from 'next/navigation';;
+import { useParams } from 'next/navigation';
 import { ASSETS } from "@/config/assets";
 import { certificateService } from "@/services/certificateService";
 import VerificationLayout from "@/components/layout/VerificationLayout"; // <-- Import the new layout
@@ -11,10 +11,12 @@ const VerifyCertificate = () => {
   const [loading, setLoading] = useState(true);
   const [certificate, setCertificate] = useState(null);
   const [error, setError] = useState("");
-
-  const verificationURL = `${window.location.origin}/verify-certificate/${certificateId}`;
+  const [verificationURL, setVerificationURL] = useState("");
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setVerificationURL(`${window.location.origin}/verify-certificate/${certificateId}`);
+    }
     fetchCertificate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [certificateId]);

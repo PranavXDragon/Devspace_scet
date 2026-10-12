@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 import { useEffect, useState } from "react";
-import {  useParams  } from 'next/navigation';;
+import { useParams } from 'next/navigation';
 import { boardingPassService } from "@/services/boardingPassService";
 import VerificationLayout from "@/components/layout/VerificationLayout";
 import { ASSETS } from "@/config/assets";
@@ -11,10 +11,12 @@ const VerifyBoardingPass = () => {
   const [loading, setLoading] = useState(true);
   const [boardingPass, setBoardingPass] = useState(null);
   const [error, setError] = useState("");
-
-  const verificationURL = `${window.location.origin}/verify-boarding-pass/${boardingPassId}`;
+  const [verificationURL, setVerificationURL] = useState("");
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setVerificationURL(`${window.location.origin}/verify-boarding-pass/${boardingPassId}`);
+    }
     fetchBoardingPass();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardingPassId]);
