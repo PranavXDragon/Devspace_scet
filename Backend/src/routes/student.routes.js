@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { registerStudent } from '../controllers/student.controller.js';
-import { getStudentDashboard } from '../controllers/studentAuth.controller.js';
+import { getStudentDashboard, updateGithubUsername } from '../controllers/studentAuth.controller.js';
 import { verifyStudentJWT } from '../middlewares/studentAuth.middleware.js';
 
 const router = Router();
@@ -10,5 +10,6 @@ router.route('/register').post(registerStudent);
 
 // Protected routes (Handled by Clerk middleware internally)
 router.route('/dashboard').get(verifyStudentJWT, getStudentDashboard);
+router.route('/github').patch(verifyStudentJWT, updateGithubUsername);
 
 export default router;

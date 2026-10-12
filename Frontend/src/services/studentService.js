@@ -16,6 +16,10 @@ class StudentService {
   async getDashboardData() {
     return axiosInstance.get("/students/dashboard");
   }
+
+  async updateGithubUsername(github_username) {
+    return axiosInstance.patch("/students/github", { github_username });
+  }
 }
 
 export const studentService = new StudentService();

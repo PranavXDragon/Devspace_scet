@@ -197,4 +197,51 @@ const getStudentDashboard = asyncHandler(async (req, res) => {
   );
 });
 
-export { loginStudent, verifyOtp, logoutStudent, getStudentDashboard };
+const updateGithubUsername = asyncHandler(async (req, res) => {
+  const { github_username } = req.body;
+  const email = req.clerkUser.emailAddresses[0].emailAddress;
+  const cleanUsername = github_username && typeof github_username === 'string' && github_username.trim() !== ''
+    ? github_username.trim().replace(/^@/, '')
+    : null;
+
+  // Optional: check with GitHub API if user exists
+  if (cleanUsername) {
+    try {
+      const ghRes = await fetch(`https://api.github.com/users/${encodeURIComponent(cleanUsername)}`, {
+        headers: {
+          'User-Agent': 'DevSpace-Coding-Club',
+          'Accept': 'application/vnd.github.v3+json',
+          ...(process.env.GITHUB_TOKEN ? { 'Authorization': `Bearer ${process.env.GITHUB_TOKEN}` } : {})
+        }
+      });
+      if (ghRes.status === 404) {
+        throw new ApiError(404, `GitHub account '@${cleanUsername}' does not exist.`);
+      }
+    } catch (err) {
+      if (err instanceof ApiError) throw err;
+      console.warn("GitHub API verify notice:", err.message);
+    }
+  }
+
+  // Update student_registrations by email
+  const { data: updated, error } = await supabase
+    .from('student_registrations')
+    .update({ github_username: cleanUsername })
+    .eq('email', email)
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    throw new ApiError(500, "Failed to update GitHub username in database: " + error.message);
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200, 
+      { github_username: cleanUsername, student: updated }, 
+      cleanUsername ? `GitHub profile connected to @${cleanUsername}` : "GitHub profile disconnected"
+    )
+  );
+});
+
+export { loginStudent, verifyOtp, logoutStudent, getStudentDashboard, updateGithubUsername };

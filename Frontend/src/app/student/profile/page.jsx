@@ -1,7 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useUser, useClerk, useSession } from "@clerk/nextjs";
-import { useConfirm } from "@/context/ConfirmContext";
+import { useConfirm, useAlert } from "@/context/ConfirmContext";
+import { useStudentDashboard } from "../StudentDashboardContext";
+import { studentService } from "@/services/studentService";
 import {
   User,
   Mail,
@@ -30,16 +32,26 @@ import {
   Sliders,
   Download,
   Calendar,
-  Clock
+  Clock,
+  Github,
+  Link2,
+  Unlink
 } from "lucide-react";
 
 export default function StudentProfile() {
   const { isLoaded, user } = useUser();
   const { signOut, openUserProfile } = useClerk();
   const { session: currentSession } = useSession();
+  const { dashboardData, fetchDashboardData } = useStudentDashboard();
   const confirm = useConfirm();
+  const showAlert = useAlert();
 
   const [currentTab, setCurrentTab] = useState("#profile");
+
+  // GitHub Integration State
+  const [githubHandle, setGithubHandle] = useState("");
+  const [githubLoading, setGithubLoading] = useState(false);
+  const [githubMessage, setGithubMessage] = useState({ type: "", text: "" });
 
   // Profile Details State
   const [formData, setFormData] = useState({
@@ -130,6 +142,16 @@ export default function StudentProfile() {
       }
     }
   }, [isLoaded, user]);
+
+  // Initialize GitHub handle from profile, OAuth, or local state
+  useEffect(() => {
+    const existingGithub = dashboardData?.profile?.github_username || 
+      user?.externalAccounts?.find(a => a.provider === 'oauth_github')?.username || 
+      (typeof window !== 'undefined' ? localStorage.getItem('devspace_github_username') : '') || '';
+    if (existingGithub) {
+      setGithubHandle(existingGithub);
+    }
+  }, [dashboardData, user]);
 
   // Fetch sessions when entering sessions tab
   useEffect(() => {
@@ -227,6 +249,22 @@ export default function StudentProfile() {
         lastName: formData.lastName
       });
 
+      if (githubHandle !== undefined) {
+        const clean = githubHandle.trim().replace(/^@/, '');
+        try {
+          await studentService.updateGithubUsername(clean || null);
+          if (typeof window !== "undefined") {
+            if (clean) localStorage.setItem("devspace_github_username", clean);
+            else localStorage.removeItem("devspace_github_username");
+          }
+          if (typeof fetchDashboardData === "function") {
+            await fetchDashboardData();
+          }
+        } catch (ghErr) {
+          console.warn("GitHub save notice:", ghErr);
+        }
+      }
+
       setMessage({ type: "success", text: "Profile updated successfully!" });
     } catch (error) {
       setMessage({
@@ -235,6 +273,97 @@ export default function StudentProfile() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveGithub = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const clean = (githubHandle || "").trim().replace(/^@/, "");
+    if (!clean) {
+      await showAlert({
+        title: "Username Required",
+        message: "Please enter your GitHub handle (e.g. 'torvalds').",
+        type: "warning"
+      });
+      return;
+    }
+    setGithubLoading(true);
+    setGithubMessage({ type: "", text: "" });
+    try {
+      await studentService.updateGithubUsername(clean);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("devspace_github_username", clean);
+      }
+      if (typeof fetchDashboardData === "function") {
+        await fetchDashboardData();
+      }
+      setGithubMessage({ type: "success", text: `GitHub handle @${clean} connected and saved successfully!` });
+      await showAlert({
+        title: "GitHub Connected!",
+        message: `Your GitHub account (@${clean}) is now connected and synced across your student profile, Git dashboard, and resume builder.`,
+        type: "info"
+      });
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || "Failed to connect GitHub account.";
+      setGithubMessage({ type: "error", text: msg });
+      await showAlert({
+        title: "Connection Failed",
+        message: msg,
+        type: "danger"
+      });
+    } finally {
+      setGithubLoading(false);
+    }
+  };
+
+  const handleDisconnectGithub = async () => {
+    const isConfirmed = await confirm({
+      title: "Disconnect GitHub Account",
+      message: "Are you sure you want to remove your connected GitHub account from your profile?",
+      confirmText: "Disconnect",
+      cancelText: "Cancel",
+      type: "warning"
+    });
+    if (!isConfirmed) return;
+
+    try {
+      setGithubLoading(true);
+      await studentService.updateGithubUsername(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("devspace_github_username");
+      }
+      if (typeof fetchDashboardData === "function") {
+        await fetchDashboardData();
+      }
+      setGithubHandle("");
+      setGithubMessage({ type: "info", text: "GitHub account disconnected." });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setGithubLoading(false);
+    }
+  };
+
+  const handleOAuthConnectGithub = async () => {
+    try {
+      if (user && typeof user.createExternalAccount === "function") {
+        const res = await user.createExternalAccount({
+          strategy: "oauth_github",
+          redirect_url: window.location.href,
+        });
+        if (res?.verification?.externalVerificationRedirectURL) {
+          window.location.href = res.verification.externalVerificationRedirectURL.href;
+          return;
+        }
+      }
+      openUserProfile();
+    } catch (err) {
+      console.error("OAuth error:", err);
+      await showAlert({
+        title: "OAuth Notice",
+        message: err.errors?.[0]?.message || err.message || "Please enter your GitHub handle in the input field above to connect directly.",
+        type: "warning"
+      });
     }
   };
 
@@ -327,6 +456,7 @@ export default function StudentProfile() {
 
   const tabs = [
     { id: "#profile", name: "Profile Details", icon: User },
+    { id: "#accounts", name: "Connected Accounts", icon: Github },
     { id: "#password", name: "Security", icon: Shield },
     { id: "#sessions", name: "Active Sessions", icon: Monitor },
     { id: "#settings", name: "Settings", icon: Settings },
@@ -509,6 +639,38 @@ export default function StudentProfile() {
                       Email address is managed by Clerk and verified with your DevSpace account.
                     </p>
                   </div>
+
+                  {/* GitHub Profile Handle in Profile Details */}
+                  <div className="space-y-2 sm:col-span-2 pt-2 border-t border-border-soft">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+                        <Github className="h-3.5 w-3.5 text-accent" /> GitHub Handle
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentTab("#accounts")}
+                        className="text-xs text-accent hover:underline font-medium flex items-center gap-1"
+                      >
+                        <span>Manage in Connected Accounts</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted font-mono text-sm">
+                        @
+                      </div>
+                      <input
+                        type="text"
+                        value={githubHandle}
+                        onChange={(e) => setGithubHandle(e.target.value)}
+                        placeholder="your-github-username (e.g. torvalds)"
+                        className="block w-full pl-8 pr-3 py-2.5 border border-border-soft rounded-xl bg-bg text-text text-sm font-mono focus:ring-1 focus:ring-accent focus:border-accent transition-colors"
+                      />
+                    </div>
+                    <p className="text-xs text-text-muted mt-1">
+                      Links your repositories to your Git Dashboard, team profiles, and Project Showcase.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Status Messages */}
@@ -545,6 +707,167 @@ export default function StudentProfile() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* CONNECTED ACCOUNTS & DEVELOPER PROFILES TAB */}
+        {/* ================================================================= */}
+        {currentTab === "#accounts" && (
+          <div className="space-y-6">
+            <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+              <div className="p-6 border-b border-border-soft flex items-center justify-between bg-card-hover">
+                <div className="flex items-center gap-3">
+                  <Github className="text-accent w-5 h-5" />
+                  <div>
+                    <h2 className="font-semibold text-text">GitHub Integration</h2>
+                    <p className="text-xs text-text-muted mt-0.5">
+                      Sync your repositories, open source contributions, and portfolio stats across DevSpace.
+                    </p>
+                  </div>
+                </div>
+                {githubHandle ? (
+                  <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold rounded-full flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Connected
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-1 bg-border-soft text-text-muted text-xs font-bold rounded-full">
+                    Not Linked
+                  </span>
+                )}
+              </div>
+
+              <div className="p-6 sm:p-10 space-y-8">
+                {/* Current Status / Input Form */}
+                <form onSubmit={handleSaveGithub} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center justify-between">
+                      <span>GitHub Handle / Username</span>
+                      {githubHandle && (
+                        <a
+                          href={`https://github.com/${githubHandle.replace(/^@/, '')}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-accent hover:underline lowercase font-mono inline-flex items-center gap-1 normal-case text-xs"
+                        >
+                          <span>github.com/{githubHandle.replace(/^@/, '')}</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </label>
+
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-muted font-mono text-sm">
+                        @
+                      </div>
+                      <input
+                        type="text"
+                        value={githubHandle}
+                        onChange={(e) => setGithubHandle(e.target.value)}
+                        placeholder="your-github-username (e.g. torvalds)"
+                        className="block w-full pl-9 pr-3 py-2.5 border border-border-soft rounded-xl bg-bg text-text text-sm font-mono focus:ring-1 focus:ring-accent focus:border-accent transition-colors"
+                      />
+                    </div>
+                    <p className="text-xs text-text-muted">
+                      Your GitHub profile will be displayed on your student profile, public project cards, and Git Dashboard.
+                    </p>
+                  </div>
+
+                  {githubMessage.text && (
+                    <div
+                      className={`p-4 rounded-xl flex items-center gap-3 ${
+                        githubMessage.type === "success"
+                          ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                          : "bg-red-500/10 text-red-500 border border-red-500/20"
+                      }`}
+                    >
+                      {githubMessage.type === "success" ? (
+                        <CheckCircle2 className="w-5 h-5 shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-5 h-5 shrink-0" />
+                      )}
+                      <p className="text-sm font-medium">{githubMessage.text}</p>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border-soft justify-between items-center">
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      <button
+                        type="submit"
+                        disabled={githubLoading}
+                        className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-accent text-bg px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-accent/90 transition-all disabled:opacity-70 cursor-pointer shadow-md"
+                      >
+                        {githubLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4" />
+                        )}
+                        <span>{githubHandle ? "Update GitHub Handle" : "Connect GitHub Account"}</span>
+                      </button>
+
+                      {githubHandle && (
+                        <button
+                          type="button"
+                          onClick={handleDisconnectGithub}
+                          disabled={githubLoading}
+                          className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-danger/10 text-danger hover:bg-danger/20 border border-danger/30 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        >
+                          <Unlink className="w-4 h-4" />
+                          <span>Disconnect</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleOAuthConnectGithub}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 bg-card hover:bg-card-hover border border-border-soft px-4 py-2.5 rounded-xl text-xs font-bold text-text transition-all cursor-pointer"
+                    >
+                      <Github className="w-4 h-4 text-accent" />
+                      <span>Authorize via GitHub OAuth</span>
+                    </button>
+                  </div>
+                </form>
+
+                {/* Helpful Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border-soft">
+                  <div className="p-4 bg-bg rounded-xl border border-border-soft flex items-start gap-3">
+                    <Code className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-bold text-text">Git Dashboard Sync</h4>
+                      <p className="text-xs text-text-muted mt-1 leading-relaxed">
+                        Track repositories and commit activity in real time on your dedicated Git Dashboard.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-4 bg-bg rounded-xl border border-border-soft flex items-start gap-3">
+                    <Laptop className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-bold text-text">Resume & Portfolio</h4>
+                      <p className="text-xs text-text-muted mt-1 leading-relaxed">
+                        Include your live GitHub repository links and stats automatically inside Resume Studio exports.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Clerk Authentication Details Card */}
+            <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden p-6">
+              <h3 className="font-semibold text-text text-sm mb-2">Clerk Account Management</h3>
+              <p className="text-xs text-text-muted leading-relaxed mb-4">
+                Manage your primary sign-in email, password, and connected social providers (Google, GitHub) directly in Clerk.
+              </p>
+              <button
+                type="button"
+                onClick={() => openUserProfile()}
+                className="px-4 py-2 bg-card-hover border border-border-soft hover:border-accent text-text text-xs font-bold rounded-xl transition-all inline-flex items-center gap-2 cursor-pointer"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-accent" />
+                <span>Open Clerk Security & OAuth Settings</span>
+              </button>
             </div>
           </div>
         )}
