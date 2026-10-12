@@ -20,7 +20,7 @@ export default function StudentDashboard() {
       {/* Header Area */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-text">Good Morning, {data.profile?.name?.split(' ')[0] || "Pranav"} 👋</h1>
+          <h1 className="text-3xl font-bold text-text">Good Morning, {data?.profile?.name?.split(' ')[0] || "Pranav"} 👋</h1>
           <p className="text-text-muted mt-2 text-lg">Keep your {streak}-day streak alive! 🔥</p>
         </div>
         

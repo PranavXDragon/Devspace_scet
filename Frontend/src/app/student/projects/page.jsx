@@ -120,7 +120,20 @@ export default function ProjectsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <p className="text-text-muted col-span-full">Loading projects...</p>
+          [1, 2, 3].map((i) => (
+            <div key={i} className="bg-card border border-border-soft p-6 rounded-xl space-y-4 skeleton-shimmer">
+              <div className="w-1/2 h-6 bg-bg rounded-md" />
+              <div className="w-full h-12 bg-bg rounded-md" />
+              <div className="flex gap-2">
+                <div className="w-16 h-4 bg-bg rounded-md" />
+                <div className="w-14 h-4 bg-bg rounded-md" />
+              </div>
+              <div className="pt-4 border-t border-border-soft/40 flex justify-between items-center">
+                <div className="w-24 h-4 bg-bg rounded-md" />
+                <div className="w-6 h-6 bg-bg rounded-full" />
+              </div>
+            </div>
+          ))
         ) : (activeTab === 'showcase' ? projects : myProjects).length === 0 ? (
           <div className="col-span-full text-center py-12 bg-card rounded-xl border border-border-soft">
             <FolderDot className="w-12 h-12 text-text-muted mx-auto mb-4" />

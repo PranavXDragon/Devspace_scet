@@ -464,8 +464,27 @@ export default function StudentProfile() {
 
   if (!isLoaded || !user) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      <div className="max-w-5xl mx-auto p-4 sm:p-6 md:p-10 space-y-8">
+        <div className="flex flex-col lg:flex-row justify-between gap-6 pb-4 border-b border-border/60">
+          <div className="space-y-2">
+            <div className="w-48 h-8 bg-card rounded-lg skeleton-shimmer" />
+            <div className="w-72 h-4 bg-card rounded-md skeleton-shimmer" />
+          </div>
+          <div className="w-96 h-10 bg-card rounded-xl skeleton-shimmer" />
+        </div>
+        <div className="bg-card rounded-2xl border border-border p-8 space-y-6 skeleton-shimmer">
+          <div className="flex items-center gap-6">
+            <div className="w-24 h-24 rounded-full bg-bg" />
+            <div className="space-y-2 flex-1">
+              <div className="w-40 h-5 bg-bg rounded-md" />
+              <div className="w-60 h-4 bg-bg rounded-md" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-border-soft/40">
+            <div className="h-10 bg-bg rounded-xl" />
+            <div className="h-10 bg-bg rounded-xl" />
+          </div>
+        </div>
       </div>
     );
   }

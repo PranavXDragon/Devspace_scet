@@ -105,8 +105,6 @@ export default function TeamsPage() {
     }
   };
 
-  if (loading) return <div className="text-text-muted">Loading teams...</div>;
-
   return (
     <div className='max-w-6xl mx-auto space-y-8'>
       <div>
@@ -150,7 +148,18 @@ export default function TeamsPage() {
           <div className="lg:col-span-2 space-y-6">
             <h2 className="text-xl font-bold text-text mb-4">Browse Teams</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {teams.length === 0 ? (
+              {loading ? (
+                [1, 2].map((i) => (
+                  <div key={i} className="bg-card border border-border-soft p-6 rounded-xl space-y-4 skeleton-shimmer">
+                    <div className="w-1/2 h-5 bg-bg rounded-md" />
+                    <div className="w-full h-12 bg-bg rounded-md" />
+                    <div className="flex justify-between items-center pt-2">
+                      <div className="w-20 h-4 bg-bg rounded-md" />
+                      <div className="w-20 h-8 bg-bg rounded-lg" />
+                    </div>
+                  </div>
+                ))
+              ) : teams.length === 0 ? (
                 <p className="text-text-muted col-span-full">No teams created yet.</p>
               ) : (
                 teams.map(t => {

@@ -57,8 +57,6 @@ export default function EventsPage() {
     }
   };
 
-  if (loading) return <div className="text-text-muted">Loading events...</div>;
-
   return (
     <div className='max-w-6xl mx-auto space-y-8'>
       <div>
@@ -69,7 +67,16 @@ export default function EventsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {events.length === 0 ? (
+        {loading ? (
+          [1, 2, 3].map((i) => (
+            <div key={i} className="bg-card border border-border-soft rounded-xl overflow-hidden skeleton-shimmer space-y-3 p-5">
+              <div className="h-32 bg-bg rounded-lg" />
+              <div className="w-1/2 h-5 bg-bg rounded-md" />
+              <div className="w-full h-8 bg-bg rounded-md" />
+              <div className="w-1/3 h-4 bg-bg rounded-md" />
+            </div>
+          ))
+        ) : events.length === 0 ? (
           <div className="col-span-full text-center py-12 bg-card rounded-xl border border-border-soft">
             <Calendar className="w-12 h-12 text-text-muted mx-auto mb-4" />
             <h3 className="text-lg font-bold text-text">No upcoming events</h3>

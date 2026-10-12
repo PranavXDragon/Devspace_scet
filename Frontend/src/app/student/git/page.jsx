@@ -272,11 +272,34 @@ export default function GitDashboard() {
         </div>
       )}
 
-      {/* Loading State */}
+      {/* Loading State: Shimmer Skeleton Dashboard */}
       {loading && (
-        <div className="flex flex-col items-center justify-center py-20 text-text-muted gap-3">
-          <RefreshCw className="w-8 h-8 animate-spin text-accent" />
-          <p className="font-mono text-sm">Fetching live GitHub stats for @{inputUsername || currentUsername}...</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-1 bg-card border border-border-soft p-6 rounded-2xl space-y-4 skeleton-shimmer">
+            <div className="w-24 h-24 rounded-full bg-bg mx-auto" />
+            <div className="w-1/2 h-5 bg-bg rounded-md mx-auto" />
+            <div className="w-1/3 h-4 bg-bg rounded-md mx-auto" />
+            <div className="w-full h-12 bg-bg rounded-md" />
+            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border-soft/40">
+              <div className="h-16 bg-bg rounded-xl" />
+              <div className="h-16 bg-bg rounded-xl" />
+            </div>
+          </div>
+          <div className="md:col-span-2 space-y-4">
+            <div className="w-48 h-6 bg-card rounded-md skeleton-shimmer" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-card border border-border-soft p-4 rounded-xl space-y-3 skeleton-shimmer">
+                  <div className="w-3/4 h-5 bg-bg rounded-md" />
+                  <div className="w-full h-8 bg-bg rounded-md" />
+                  <div className="flex gap-2 pt-2 border-t border-border-soft/40">
+                    <div className="w-12 h-4 bg-bg rounded-md" />
+                    <div className="w-10 h-4 bg-bg rounded-md ml-auto" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

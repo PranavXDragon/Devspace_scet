@@ -49,13 +49,29 @@ export default function StudentLayout({ children }) {
   const { user } = useUser();
   const student = user; // Map student to user for now
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("devspace_student_dashboard_cache");
+        if (cached) return false;
+      } catch (e) {}
+    }
+    return !user;
+  });
   const [error, setError] = useState("");
-  const [dashboardData, setDashboardData] = useState({
-    profile: null,
-    registrations: [],
-    boardingPasses: [],
-    certificates: [],
+  const [dashboardData, setDashboardData] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("devspace_student_dashboard_cache");
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return {
+      profile: null,
+      registrations: [],
+      boardingPasses: [],
+      certificates: [],
+    };
   });
 
   useEffect(() => {
@@ -71,7 +87,13 @@ export default function StudentLayout({ children }) {
   const fetchDashboardData = async () => {
     try {
       const response = await studentService.getDashboardData();
-      setDashboardData(response.data || response);
+      const freshData = response.data || response;
+      setDashboardData(freshData);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("devspace_student_dashboard_cache", JSON.stringify(freshData));
+        } catch (e) {}
+      }
     } catch (err) {
       setError(`Failed to load dashboard data: ${err?.message || err}`);
       if (err.response?.status === 401) {
@@ -216,7 +238,7 @@ export default function StudentLayout({ children }) {
     }
   };
 
-  if (loading) {
+  if (loading && !dashboardData?.profile && !user) {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-accent" />

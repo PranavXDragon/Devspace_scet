@@ -49,14 +49,6 @@ export default function ResourceLibrary() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-20">
       <div>
@@ -112,7 +104,24 @@ export default function ResourceLibrary() {
       </div>
 
       {/* Resources Grid */}
-      {filteredResources.length === 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-card border border-border-soft rounded-xl p-5 space-y-4 skeleton-shimmer">
+              <div className="flex justify-between items-center">
+                <div className="w-20 h-4 bg-bg rounded-md" />
+                <div className="w-5 h-5 bg-bg rounded-md" />
+              </div>
+              <div className="w-3/4 h-5 bg-bg rounded-md" />
+              <div className="w-full h-12 bg-bg rounded-md" />
+              <div className="flex gap-2 pt-2 border-t border-border-soft/40">
+                <div className="w-12 h-4 bg-bg rounded-md" />
+                <div className="w-16 h-4 bg-bg rounded-md" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filteredResources.length === 0 ? (
         <div className="bg-card border border-border rounded-xl p-12 text-center flex flex-col items-center justify-center shadow-sm">
           <BookOpen className="w-12 h-12 text-border mb-4" />
           <h3 className="text-lg font-bold text-text">No resources found</h3>
