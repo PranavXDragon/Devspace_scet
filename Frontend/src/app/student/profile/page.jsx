@@ -256,9 +256,15 @@ export default function StudentProfile() {
           newPassword: passwordData.newPassword
         });
       } else {
-        await user.createPassword({
-          newPassword: passwordData.newPassword
-        });
+        if (typeof user.createPassword === "function") {
+          await user.createPassword({
+            newPassword: passwordData.newPassword
+          });
+        } else {
+          await user.updatePassword({
+            newPassword: passwordData.newPassword
+          });
+        }
       }
 
       setPasswordMessage({ type: "success", text: "Password updated successfully!" });
