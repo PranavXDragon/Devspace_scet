@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { Check, Copy } from "lucide-react";
 
 const VerificationLayout = ({
   isLoading,
@@ -10,6 +11,8 @@ const VerificationLayout = ({
   downloadText = "Download PDF",
   children,
 }) => {
+  const [copied, setCopied] = useState(false);
+
   const handlePrint = () => {
     window.print();
   };
@@ -17,9 +20,10 @@ const VerificationLayout = ({
   const copyVerificationLink = async () => {
     try {
       await navigator.clipboard.writeText(verificationURL);
-      alert("Verification link copied.");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
     } catch {
-      alert("Unable to copy link.");
+      // fallback
     }
   };
 
@@ -105,9 +109,19 @@ const VerificationLayout = ({
               </button>
               <button
                 onClick={copyVerificationLink}
-                className="inline-flex items-center w-full lg:w-fit justify-center min-h-[3.25rem] px-[1.5rem] py-[0.9rem] border font-sans text-[0.96rem] tracking-[0.2em] uppercase transition-all duration-150 rounded-lg bg-card text-text border-border hover:bg-card-hover hover:-translate-y-[1px]"
+                className="inline-flex items-center gap-2 w-full lg:w-fit justify-center min-h-[3.25rem] px-[1.5rem] py-[0.9rem] border font-sans text-[0.96rem] tracking-[0.2em] uppercase transition-all duration-150 rounded-lg bg-card text-text border-border hover:bg-card-hover hover:-translate-y-[1px]"
               >
-                Copy Link
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-500" />
+                    <span className="text-green-500">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 text-accent" />
+                    <span>Copy Link</span>
+                  </>
+                )}
               </button>
             </div>
 

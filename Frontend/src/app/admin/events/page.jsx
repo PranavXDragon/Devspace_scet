@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Plus, Trash2, MapPin } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
+import { useConfirm } from '@/context/ConfirmContext';
 
 export default function AdminEventsPage() {
+  const confirm = useConfirm();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,7 +44,13 @@ export default function AdminEventsPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this event?')) return;
+    const isConfirmed = await confirm({
+      title: "Delete Event",
+      message: "Are you sure you want to delete this event?",
+      confirmText: "Delete",
+      type: "danger"
+    });
+    if (!isConfirmed) return;
     try {
       await axiosInstance.delete(`/events/${id}`);
       fetchEvents();

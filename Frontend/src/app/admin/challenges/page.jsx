@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react';
 import { Flame, Plus, Pencil, Trash2 } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
+import { useConfirm } from '@/context/ConfirmContext';
 
 export default function AdminChallengesPage() {
+  const confirm = useConfirm();
   const [challenges, setChallenges] = useState([]);
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +89,13 @@ export default function AdminChallengesPage() {
   };
 
   const handleDelete = async (id) => {
-    if (confirm('Are you sure you want to delete this challenge?')) {
+    const isConfirmed = await confirm({
+      title: "Delete Challenge",
+      message: "Are you sure you want to delete this challenge?",
+      confirmText: "Delete",
+      type: "danger"
+    });
+    if (isConfirmed) {
       try {
         await axiosInstance.delete(`/admin/challenges/${id}`);
         fetchData();

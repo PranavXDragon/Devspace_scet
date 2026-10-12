@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '@/services/axiosInstance';
 import { useToast } from '@/hooks/use-toast';
+import { useConfirm } from '@/context/ConfirmContext';
 import { Plus, Edit2, Trash2, BookOpen, Layers } from 'lucide-react';
 
 export default function AdminLearningPage() {
+  const confirm = useConfirm();
   const [roadmaps, setRoadmaps] = useState([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -71,7 +73,13 @@ export default function AdminLearningPage() {
   };
 
   const handleDelete = async (type, id) => {
-    if (!window.confirm(`Are you sure you want to delete this ${type}?`)) return;
+    const isConfirmed = await confirm({
+      title: `Delete ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+      message: `Are you sure you want to delete this ${type}? This action cannot be undone.`,
+      confirmText: "Delete",
+      type: "danger"
+    });
+    if (!isConfirmed) return;
     try {
       await axiosInstance.delete(`/admin/learning/${type}s/${id}`);
       toast({ title: 'Success', description: `${type} deleted successfully` });

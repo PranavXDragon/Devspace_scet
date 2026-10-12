@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useUser, useClerk, useSession } from "@clerk/nextjs";
+import { useConfirm } from "@/context/ConfirmContext";
 import {
   User,
   Mail,
@@ -36,6 +37,7 @@ export default function StudentProfile() {
   const { isLoaded, user } = useUser();
   const { signOut, openUserProfile } = useClerk();
   const { session: currentSession } = useSession();
+  const confirm = useConfirm();
 
   const [currentTab, setCurrentTab] = useState("#profile");
 
@@ -169,7 +171,15 @@ export default function StudentProfile() {
   };
 
   const handleSignOutAllOtherSessions = async () => {
-    if (!window.confirm("Are you sure you want to sign out of all other devices?")) return;
+    const isConfirmed = await confirm({
+      title: "Sign Out Other Devices",
+      message: "Are you sure you want to sign out of all other active sessions? You will remain logged in on this browser.",
+      confirmText: "Sign Out Devices",
+      cancelText: "Cancel",
+      type: "danger"
+    });
+
+    if (!isConfirmed) return;
     try {
       setSessionActionLoading("all-other");
       setSessionMessage({ type: "", text: "" });

@@ -7,6 +7,7 @@ import {
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
 import { useStudentDashboard } from '../StudentDashboardContext';
+import { useConfirm } from '@/context/ConfirmContext';
 import ResumeForm from './ResumeForm';
 import ResumeTemplates from './ResumeTemplates';
 
@@ -130,6 +131,7 @@ const STORAGE_KEY = 'devspace_resume_state_v2';
 export default function ResumePage() {
   const { user } = useUser();
   const { dashboardData } = useStudentDashboard();
+  const confirm = useConfirm();
   const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
 
   // View mode: 'split' (desktop dual view), 'editor' (form only), 'preview' (full A4 preview)
@@ -257,8 +259,16 @@ export default function ResumePage() {
     }
   };
 
-  const handleLoadSampleData = () => {
-    if (window.confirm("Load sample resume template? This will replace current fields with a complete developer portfolio template.")) {
+  const handleLoadSampleData = async () => {
+    const isConfirmed = await confirm({
+      title: "Load Sample Template",
+      message: "Load a complete sample developer resume? This will populate all fields with a high-impact portfolio template that you can customize.",
+      confirmText: "Load Template",
+      cancelText: "Cancel",
+      type: "accent"
+    });
+
+    if (isConfirmed) {
       setResumeData({
         ...SAMPLE_RESUME_DATA,
         personal: {

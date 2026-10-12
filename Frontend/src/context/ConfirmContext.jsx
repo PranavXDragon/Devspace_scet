@@ -1,10 +1,9 @@
-﻿"use client";
+"use client";
 import React, { createContext, useContext, useState, useCallback } from "react";
 import ConfirmModal from "@/components/common/ConfirmModal";
 
 const ConfirmContext = createContext();
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useConfirm = () => {
   const context = useContext(ConfirmContext);
   if (!context) {
@@ -18,15 +17,28 @@ export const ConfirmProvider = ({ children }) => {
     isOpen: false,
     title: "",
     message: "",
+    confirmText: "Confirm",
+    cancelText: "Cancel",
+    type: "danger",
     resolve: null,
   });
 
   const confirm = useCallback((options) => {
     return new Promise((resolve) => {
+      let opts = {};
+      if (typeof options === "string") {
+        opts = { message: options };
+      } else if (typeof options === "object" && options !== null) {
+        opts = options;
+      }
+
       setConfirmState({
         isOpen: true,
-        title: options.title || "Confirm Action",
-        message: options.message || "Are you sure you want to proceed?",
+        title: opts.title || "Confirm Action",
+        message: opts.message || "Are you sure you want to proceed?",
+        confirmText: opts.confirmText || "Confirm",
+        cancelText: opts.cancelText || "Cancel",
+        type: opts.type || "danger",
         resolve,
       });
     });
@@ -53,10 +65,12 @@ export const ConfirmProvider = ({ children }) => {
         isOpen={confirmState.isOpen}
         title={confirmState.title}
         message={confirmState.message}
+        confirmText={confirmState.confirmText}
+        cancelText={confirmState.cancelText}
+        type={confirmState.type}
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />
     </ConfirmContext.Provider>
   );
 };
-

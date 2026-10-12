@@ -4,10 +4,12 @@ import { MessageSquare, Plus, ThumbsUp, MessageCircle, Trash2, Edit3, X, Check }
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
 import { useStudentDashboard } from '../StudentDashboardContext';
+import { useConfirm } from '@/context/ConfirmContext';
 
 export default function DiscussionsPage() {
   const { user } = useUser();
   const { dashboardData } = useStudentDashboard();
+  const confirm = useConfirm();
   const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
 
   const [discussions, setDiscussions] = useState([]);
@@ -70,7 +72,13 @@ export default function DiscussionsPage() {
 
   const handleDelete = async (id, e) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this discussion?')) return;
+    const isConfirmed = await confirm({
+      title: "Delete Discussion",
+      message: "Are you sure you want to delete this discussion thread? This action cannot be undone.",
+      confirmText: "Delete",
+      type: "danger"
+    });
+    if (!isConfirmed) return;
     
     try {
       await axiosInstance.delete(`/discussions/${id}`, { data: { student_id: studentId }});
@@ -99,7 +107,13 @@ export default function DiscussionsPage() {
   };
 
   const handleDeleteReply = async (replyId) => {
-    if (!confirm('Delete this reply?')) return;
+    const isConfirmed = await confirm({
+      title: "Delete Reply",
+      message: "Are you sure you want to delete your reply?",
+      confirmText: "Delete",
+      type: "danger"
+    });
+    if (!isConfirmed) return;
     try {
       await axiosInstance.delete(`/discussions/replies/${replyId}`, { data: { student_id: studentId }});
       fetchDiscussionDetails(activeDiscussion.id);

@@ -1,11 +1,13 @@
-﻿"use client";
+"use client";
 import React, { useState, useEffect } from "react";
 
-import Link from 'next/link';;
+import Link from 'next/link';
 import axios from "axios";
 import { Plus, Search, Edit, Trash2, Library, Loader2, ExternalLink } from "lucide-react";
+import { useConfirm } from "@/context/ConfirmContext";
 
 export default function ManageResources() {
+  const confirm = useConfirm();
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -31,7 +33,13 @@ export default function ManageResources() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this resource?")) return;
+    const isConfirmed = await confirm({
+      title: "Delete Resource",
+      message: "Are you sure you want to delete this learning resource?",
+      confirmText: "Delete",
+      type: "danger"
+    });
+    if (!isConfirmed) return;
     try {
       await axios.delete(`/api/v1/resources/${id}`, {
         withCredentials: true,
