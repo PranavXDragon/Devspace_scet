@@ -14,7 +14,7 @@ export const getLeaderboard = asyncHandler(async (req, res) => {
         .limit(parseInt(limit));
 
     if (batch && batch !== 'ALL') {
-        query = query.eq('batch', batch);
+        query = query.or(`batch.eq.${batch},year.eq.${batch}`);
     }
     
     if (course && course !== 'ALL') {
