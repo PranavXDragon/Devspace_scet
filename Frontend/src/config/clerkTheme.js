@@ -6,6 +6,7 @@ export const clerkAppearance = {
     socialButtonsVariant: 'blockButton',
     socialButtonsPlacement: 'top',
     logoImageUrl: '/logo.png',
+    unsafe_disableDevelopmentModeWarnings: true,
   },
   variables: {
     colorPrimary: '#2EC5D4',
@@ -38,6 +39,8 @@ export const clerkAppearance = {
     formFieldInput: 'bg-[#161b22] border border-white/10 text-white rounded-xl placeholder-slate-500 focus:border-[#2EC5D4] focus:ring-2 focus:ring-[#2EC5D4]/30 transition-all duration-200',
     formButtonPrimary: 'bg-[#2EC5D4] hover:bg-[#22a8b6] active:scale-[0.98] text-[#0b0f17] font-bold uppercase tracking-wider text-sm py-3 rounded-xl transition-all duration-200 shadow-[0_0_20px_rgba(46,197,212,0.35)] hover:shadow-[0_0_30px_rgba(46,197,212,0.55)] border-0 cursor-pointer',
     footer: 'bg-transparent border-t border-white/5 pt-4 mt-2',
+    footerPages: 'hidden',
+    footerPagesLink: 'hidden',
     footerAction: 'text-slate-400 text-sm',
     footerActionText: 'text-slate-400 text-sm',
     footerActionLink: 'text-[#2EC5D4] hover:text-[#55d6e3] font-semibold transition-colors',

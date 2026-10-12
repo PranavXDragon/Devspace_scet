@@ -244,3 +244,20 @@
   border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
+/* Hide Clerk Development Mode warning bar & Secured by Clerk branding */
+.cl-developmentModeNotice,
+.cl-footerPages,
+.cl-footerPagesLink,
+.cl-footer__logo,
+.cl-footerItem:has(a[href*="clerk"]),
+.cl-footer a[href*="clerk"],
+.cl-footer [aria-label*="Clerk" i],
+.cl-footer svg[aria-label*="Clerk" i],
+.cl-internal-b3fm6y,
+.cl-internal-1dauvpw,
+[data-localization-key*="developmentMode" i],
+[data-localization-key*="securedBy" i] {
+  display: none !important;
+}
+
+
