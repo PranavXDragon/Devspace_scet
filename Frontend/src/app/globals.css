@@ -260,4 +260,67 @@
   display: none !important;
 }
 
+/* =========================================================
+   DevSpace Resume Print & PDF Export Optimization
+   ========================================================= */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    background-image: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 10pt !important;
+  }
+
+  /* Hide headers, sidebars, controls, and other interactive elements */
+  header, nav, aside, footer,
+  .no-print,
+  button,
+  .cl-userButton-root {
+    display: none !important;
+  }
+
+  /* Hide everything on page by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Unhide the resume print target */
+  #resume-print-area,
+  #resume-print-area * {
+    visibility: visible;
+  }
+
+  #resume-print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-page-break-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+
+
 
