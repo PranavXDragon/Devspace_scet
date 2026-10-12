@@ -4,8 +4,10 @@ import { Calendar, MapPin, Users, Ticket } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
 import { useStudentDashboard } from '../StudentDashboardContext';
+import { useAlert } from '@/context/ConfirmContext';
 
 export default function EventsPage() {
+  const showAlert = useAlert();
   const { user } = useUser();
   const { dashboardData } = useStudentDashboard();
   const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
@@ -23,7 +25,8 @@ export default function EventsPage() {
         ? `/student-events?student_id=${studentId}` 
         : `/student-events`;
       const res = await axiosInstance.get(url);
-      setEvents(res.data || []);
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      setEvents(list);
     } catch (err) {
       console.error(err);
     } finally {
@@ -33,7 +36,11 @@ export default function EventsPage() {
 
   const toggleRSVP = async (eventId) => {
     if (!studentId) {
-      alert('Please complete registration to RSVP for events.');
+      await showAlert({
+        title: "Registration Required",
+        message: "Please complete your student registration to RSVP for events.",
+        type: "warning"
+      });
       return;
     }
     try {
@@ -42,7 +49,11 @@ export default function EventsPage() {
       });
       fetchEvents();
     } catch (err) {
-      alert('Failed to RSVP');
+      await showAlert({
+        title: "RSVP Failed",
+        message: err.response?.data?.message || 'Failed to update RSVP status.',
+        type: "danger"
+      });
     }
   };
 

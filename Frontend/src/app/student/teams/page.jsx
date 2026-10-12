@@ -4,8 +4,10 @@ import { Users, UserPlus, Shield, Info, ArrowRight } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
 import { useStudentDashboard } from '../StudentDashboardContext';
+import { useAlert } from '@/context/ConfirmContext';
 
 export default function TeamsPage() {
+  const showAlert = useAlert();
   const { user } = useUser();
   const { dashboardData } = useStudentDashboard();
   const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
@@ -33,7 +35,8 @@ export default function TeamsPage() {
   const fetchTeams = async () => {
     try {
       const res = await axiosInstance.get('/teams');
-      setTeams(res.data || []);
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      setTeams(list);
     } catch (err) {
       console.error(err);
     }
@@ -43,7 +46,8 @@ export default function TeamsPage() {
     if (!studentId) return;
     try {
       const res = await axiosInstance.get(`/teams/student/${studentId}`);
-      setMyTeam(res.data || null);
+      const teamData = res?.data !== undefined ? res.data : res;
+      setMyTeam(teamData || null);
     } catch (err) {
       console.error(err);
     }
@@ -52,7 +56,11 @@ export default function TeamsPage() {
   const handleCreateTeam = async (e) => {
     e.preventDefault();
     if (!studentId) {
-      alert('Please complete registration to create a team.');
+      await showAlert({
+        title: "Registration Required",
+        message: "Please complete your student registration before creating a team.",
+        type: "warning"
+      });
       return;
     }
     try {
@@ -61,16 +69,25 @@ export default function TeamsPage() {
         student_id: studentId
       });
       setIsCreating(false);
+      setFormData({ name: '', description: '' });
       fetchTeams();
       fetchMyTeam();
     } catch (err) {
-      alert(err.response?.data?.message || 'Error creating team');
+      await showAlert({
+        title: "Team Creation Error",
+        message: err.response?.data?.message || 'Error creating team.',
+        type: "danger"
+      });
     }
   };
 
   const handleJoinTeam = async (teamId) => {
     if (!studentId) {
-      alert('Please complete registration to join a team.');
+      await showAlert({
+        title: "Registration Required",
+        message: "Please complete your student registration before joining a team.",
+        type: "warning"
+      });
       return;
     }
     try {
@@ -80,7 +97,11 @@ export default function TeamsPage() {
       fetchTeams();
       fetchMyTeam();
     } catch (err) {
-      alert(err.response?.data?.message || 'Error joining team');
+      await showAlert({
+        title: "Join Error",
+        message: err.response?.data?.message || 'Error joining team.',
+        type: "danger"
+      });
     }
   };
 

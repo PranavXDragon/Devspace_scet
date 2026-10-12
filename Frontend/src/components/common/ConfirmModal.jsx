@@ -63,13 +63,15 @@ export default function ConfirmModal({
 
         {/* Action Buttons */}
         <div className="flex gap-3 justify-end pt-4 border-t border-border-soft mt-5">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 text-text text-xs font-bold rounded-xl border border-border-soft bg-card hover:bg-card-hover transition-all"
-          >
-            {cancelText}
-          </button>
+          {cancelText ? (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 text-text text-xs font-bold rounded-xl border border-border-soft bg-card hover:bg-card-hover transition-all"
+            >
+              {cancelText}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => {

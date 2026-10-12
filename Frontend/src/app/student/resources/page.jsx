@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "@/services/axiosInstance";
 import { Search, Library, ExternalLink, Filter, Loader2, BookOpen, Video, FileText, Link as LinkIcon, Archive } from "lucide-react";
 
 export default function ResourceLibrary() {
@@ -23,10 +23,9 @@ export default function ResourceLibrary() {
   const fetchResources = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/v1/resources/published", {
-        withCredentials: true,
-      });
-      setResources(response.data.data || []);
+      const res = await axiosInstance.get("/resources/published");
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      setResources(list);
     } catch (err) {
       setError("Failed to load resources.");
     } finally {

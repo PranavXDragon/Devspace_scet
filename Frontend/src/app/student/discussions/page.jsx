@@ -4,12 +4,13 @@ import { MessageSquare, Plus, ThumbsUp, MessageCircle, Trash2, Edit3, X, Check }
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
 import { useStudentDashboard } from '../StudentDashboardContext';
-import { useConfirm } from '@/context/ConfirmContext';
+import { useConfirm, useAlert } from '@/context/ConfirmContext';
 
 export default function DiscussionsPage() {
   const { user } = useUser();
   const { dashboardData } = useStudentDashboard();
   const confirm = useConfirm();
+  const showAlert = useAlert();
   const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
 
   const [discussions, setDiscussions] = useState([]);
@@ -66,7 +67,11 @@ export default function DiscussionsPage() {
       fetchDiscussions();
       if (activeDiscussion && editingId === activeDiscussion.id) fetchDiscussionDetails(editingId);
     } catch (err) {
-      alert(err.response?.data?.message || 'Error saving discussion');
+      await showAlert({
+        title: "Action Failed",
+        message: err.response?.data?.message || 'Error saving discussion thread.',
+        type: "danger"
+      });
     }
   };
 
@@ -85,7 +90,11 @@ export default function DiscussionsPage() {
       if (activeDiscussion?.id === id) setActiveDiscussion(null);
       fetchDiscussions();
     } catch (err) {
-      alert(err.response?.data?.message || 'Error deleting');
+      await showAlert({
+        title: "Delete Failed",
+        message: err.response?.data?.message || 'Error deleting discussion thread.',
+        type: "danger"
+      });
     }
   };
 
@@ -102,7 +111,11 @@ export default function DiscussionsPage() {
       fetchDiscussionDetails(activeDiscussion.id);
       fetchDiscussions(); // Update reply counts in main list
     } catch (err) {
-      alert('Error posting reply');
+      await showAlert({
+        title: "Reply Failed",
+        message: 'Unable to post reply. Please check your connection.',
+        type: "danger"
+      });
     }
   };
 
@@ -119,7 +132,11 @@ export default function DiscussionsPage() {
       fetchDiscussionDetails(activeDiscussion.id);
       fetchDiscussions();
     } catch (err) {
-      alert('Error deleting reply');
+      await showAlert({
+        title: "Delete Failed",
+        message: 'Error deleting reply.',
+        type: "danger"
+      });
     }
   };
 

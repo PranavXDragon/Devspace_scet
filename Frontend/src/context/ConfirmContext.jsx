@@ -12,6 +12,14 @@ export const useConfirm = () => {
   return context.confirm;
 };
 
+export const useAlert = () => {
+  const context = useContext(ConfirmContext);
+  if (!context) {
+    throw new Error("useAlert must be used within a ConfirmProvider");
+  }
+  return context.showAlert;
+};
+
 export const ConfirmProvider = ({ children }) => {
   const [confirmState, setConfirmState] = useState({
     isOpen: false,
@@ -44,6 +52,29 @@ export const ConfirmProvider = ({ children }) => {
     });
   }, []);
 
+  const showAlert = useCallback((options) => {
+    return new Promise((resolve) => {
+      let opts = {};
+      if (typeof options === "string") {
+        opts = { message: options };
+      } else if (typeof options === "object" && options !== null) {
+        opts = options;
+      }
+
+      setConfirmState({
+        isOpen: true,
+        title: opts.title || "Notice",
+        message: opts.message || "",
+        confirmText: opts.confirmText || "Okay",
+        cancelText: null,
+        type: opts.type || "warning",
+        resolve,
+      });
+    });
+  }, []);
+
+  confirm.alert = showAlert;
+
   const handleConfirm = () => {
     if (confirmState.resolve) {
       confirmState.resolve(true);
@@ -59,7 +90,7 @@ export const ConfirmProvider = ({ children }) => {
   };
 
   return (
-    <ConfirmContext.Provider value={{ confirm }}>
+    <ConfirmContext.Provider value={{ confirm, showAlert }}>
       {children}
       <ConfirmModal
         isOpen={confirmState.isOpen}

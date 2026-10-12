@@ -4,8 +4,10 @@ import { FolderDot, Github, ExternalLink, Globe, Plus, ToggleLeft, ToggleRight, 
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
 import { useStudentDashboard } from '../StudentDashboardContext';
+import { useAlert } from '@/context/ConfirmContext';
 
 export default function ProjectsPage() {
+  const showAlert = useAlert();
   const { user } = useUser();
   const { dashboardData } = useStudentDashboard();
   const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
@@ -28,11 +30,13 @@ export default function ProjectsPage() {
     try {
       if (activeTab === 'showcase') {
         const res = await axiosInstance.get('/projects');
-        setProjects(res.data || []);
+        const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+        setProjects(list);
       } else {
         if (studentId) {
           const res = await axiosInstance.get(`/projects/student/${studentId}`);
-          setMyProjects(res.data || []);
+          const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+          setMyProjects(list);
         } else {
           setMyProjects([]);
         }
@@ -47,7 +51,11 @@ export default function ProjectsPage() {
   const handleCreateProject = async (e) => {
     e.preventDefault();
     if (!studentId) {
-      alert('Please complete registration to add projects.');
+      await showAlert({
+        title: "Registration Required",
+        message: "Please complete your student registration before adding showcase projects.",
+        type: "warning"
+      });
       return;
     }
     try {
@@ -61,7 +69,11 @@ export default function ProjectsPage() {
       setFormData({ title: '', description: '', github_url: '', live_url: '', tags: '', is_public: true });
       fetchProjects();
     } catch (err) {
-      alert(err.response?.data?.message || 'Error creating project');
+      await showAlert({
+        title: "Submission Failed",
+        message: err.response?.data?.message || 'Error creating project.',
+        type: "danger"
+      });
     }
   };
 

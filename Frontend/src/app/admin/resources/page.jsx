@@ -4,10 +4,11 @@ import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import axios from "axios";
 import { Plus, Search, Edit, Trash2, Library, Loader2, ExternalLink } from "lucide-react";
-import { useConfirm } from "@/context/ConfirmContext";
+import { useConfirm, useAlert } from "@/context/ConfirmContext";
 
 export default function ManageResources() {
   const confirm = useConfirm();
+  const showAlert = useAlert();
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -46,7 +47,11 @@ export default function ManageResources() {
       });
       setResources((prev) => prev.filter((r) => r.id !== id));
     } catch (err) {
-      alert("Failed to delete resource.");
+      await showAlert({
+        title: "Delete Failed",
+        message: "Failed to delete resource.",
+        type: "danger"
+      });
     }
   };
 
