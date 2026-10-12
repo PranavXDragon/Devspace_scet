@@ -36,7 +36,8 @@ import {
   FileText,
   Globe,
   Activity,
-  UserCircle
+  UserCircle,
+  ChevronDown
 } from "lucide-react";
 
 export default function StudentLayout({ children }) {
@@ -84,12 +85,14 @@ export default function StudentLayout({ children }) {
   const navCategories = [
     {
       category: "Dashboard",
+      icon: LayoutDashboard,
       items: [
         { name: "Home", path: "/student/dashboard", icon: LayoutDashboard },
       ]
     },
     {
       category: "CODE",
+      icon: Code2,
       items: [
         { name: "IDE", path: "/student/ide", icon: Terminal, disabled: false },
         { name: "Problems", path: "/student/problems", icon: Code2, disabled: false },
@@ -99,6 +102,7 @@ export default function StudentLayout({ children }) {
     },
     {
       category: "LEARN",
+      icon: GraduationCap,
       items: [
         { name: "Learning Hub", path: "/student/learn", icon: GraduationCap, disabled: false },
         { name: "Resources", path: "/student/resources", icon: Library },
@@ -106,6 +110,7 @@ export default function StudentLayout({ children }) {
     },
     {
       category: "BUILD",
+      icon: FolderDot,
       items: [
         { name: "Projects", path: "/student/projects", icon: FolderDot, disabled: false },
         { name: "Teams", path: "/student/teams", icon: Users, disabled: false },
@@ -114,6 +119,7 @@ export default function StudentLayout({ children }) {
     },
     {
       category: "COMMUNITY",
+      icon: Users,
       items: [
         { name: "Discussions", path: "/student/discussions", icon: MessageSquare, disabled: false },
         { name: "Mentors", path: "/student/mentors", icon: UserCheck, disabled: false },
@@ -123,6 +129,7 @@ export default function StudentLayout({ children }) {
     },
     {
       category: "PROGRESS",
+      icon: LineChart,
       items: [
         { name: "Analytics", path: "/student/analytics", icon: LineChart, disabled: false },
         { name: "Achievements", path: "/student/achievements", icon: Medal, disabled: false },
@@ -132,6 +139,7 @@ export default function StudentLayout({ children }) {
     },
     {
       category: "CAREER",
+      icon: Briefcase,
       items: [
         { name: "Opportunities", path: "/student/opportunities", icon: Briefcase, disabled: false },
         { name: "Resume", path: "/student/resume", icon: FileText, disabled: false },
@@ -139,11 +147,62 @@ export default function StudentLayout({ children }) {
     },
     {
       category: "ACCOUNT",
+      icon: UserCircle,
       items: [
         { name: "Profile", path: "/student/profile", icon: UserCircle, disabled: false },
       ]
     }
   ];
+
+  // Helper to determine which category contains the current route
+  const getActiveCategory = (pathname) => {
+    const found = navCategories.find(group =>
+      group.items.some(item => pathname === item.path || pathname.startsWith(item.path + '/'))
+    );
+    return found ? found.category : "CODE";
+  };
+
+  // State to track expanded dropdown categories
+  const [openCategories, setOpenCategories] = useState(() => {
+    const initialCat = getActiveCategory(location);
+    return initialCat && initialCat !== "Dashboard" && initialCat !== "ACCOUNT"
+      ? { [initialCat]: true }
+      : { CODE: true };
+  });
+
+  // Auto-expand category containing current route on route change
+  useEffect(() => {
+    const currentCat = getActiveCategory(location);
+    if (currentCat && currentCat !== "Dashboard" && currentCat !== "ACCOUNT") {
+      setOpenCategories(prev => ({
+        ...prev,
+        [currentCat]: true
+      }));
+    }
+  }, [location]);
+
+  const toggleCategory = (categoryName) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [categoryName]: !prev[categoryName]
+    }));
+  };
+
+  const expandableCategories = navCategories.filter(
+    cat => cat.category !== "Dashboard" && cat.category !== "ACCOUNT"
+  );
+
+  const allCollapsed = expandableCategories.every(c => !openCategories[c.category]);
+
+  const toggleAll = () => {
+    if (allCollapsed) {
+      const allOpen = {};
+      expandableCategories.forEach(c => { allOpen[c.category] = true; });
+      setOpenCategories(allOpen);
+    } else {
+      setOpenCategories({});
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -206,47 +265,134 @@ export default function StudentLayout({ children }) {
             </div>
         </div>
 
-                <nav className="flex-1 px-4 py-4 space-y-6 overflow-y-auto custom-scrollbar">
-          {navCategories.map((group, groupIdx) => (
-            <div key={groupIdx}>
-              {group.category !== "Dashboard" && (
-                <p className="px-4 mb-2 text-xs font-bold tracking-wider text-text-muted uppercase">
-                  {group.category}
-                </p>
-              )}
-              <div className="space-y-1">
-                {group.items.map((item) => {
-                  const isActive = location === item.path;
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.disabled ? "#" : item.path}
-                      onClick={(e) => {
-                        if (item.disabled) e.preventDefault();
-                      }}
-                      className={
-                        `flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all group ${
-                          isActive
-                            ? "bg-accent/10 text-accent relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-accent before:rounded-r-md"
-                            : item.disabled
-                              ? "text-text-muted/50 cursor-not-allowed"
-                              : "text-text-muted hover:bg-card-hover hover:text-text"
-                        }`
-                      }
-                    >
-                      <item.icon className={`w-5 h-5 ${isActive ? 'text-accent' : item.disabled ? 'text-text-muted/30' : 'text-text-muted group-hover:text-text'}`} />
-                      {item.name}
-                      {item.disabled && (
-                        <span className="ml-auto text-[9px] uppercase tracking-widest font-bold bg-bg px-2 py-0.5 rounded-full text-text-muted/50 border border-border-soft">
-                          Soon
-                        </span>
+                <nav className="flex-1 px-3 py-3 space-y-1.5 overflow-y-auto custom-scrollbar">
+          {/* Top Primary Link: Home / Dashboard */}
+          <Link
+            href="/student/dashboard"
+            className={`flex items-center gap-3 px-3.5 py-2.5 text-sm font-medium rounded-lg transition-all group ${
+              location === "/student/dashboard"
+                ? "bg-accent/10 text-accent font-semibold relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-accent before:rounded-r-md shadow-sm"
+                : "text-text-muted hover:bg-card-hover hover:text-text"
+            }`}
+          >
+            <LayoutDashboard className={`w-4.5 h-4.5 ${location === "/student/dashboard" ? 'text-accent' : 'text-text-muted group-hover:text-text'}`} />
+            <span>Home</span>
+          </Link>
+
+          {/* Quick Header / Accordion Controls */}
+          <div className="pt-3 pb-1 px-3 flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-text-muted/60">
+            <span>Navigation</span>
+            <button
+              type="button"
+              onClick={toggleAll}
+              className="text-[10px] text-text-muted/70 hover:text-accent font-semibold transition-colors cursor-pointer"
+              title={allCollapsed ? "Expand all categories" : "Collapse all categories"}
+            >
+              {allCollapsed ? "+ Expand All" : "- Collapse All"}
+            </button>
+          </div>
+
+          {/* Collapsible Dropdown Categories */}
+          <div className="space-y-1">
+            {expandableCategories.map((group) => {
+              const isGroupActive = group.items.some(
+                item => location === item.path || location.startsWith(item.path + '/')
+              );
+              const isOpen = !!openCategories[group.category];
+              const CategoryIcon = group.icon;
+
+              return (
+                <div key={group.category} className="rounded-lg overflow-hidden transition-all">
+                  {/* Category Dropdown Trigger */}
+                  <button
+                    type="button"
+                    onClick={() => toggleCategory(group.category)}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold tracking-wider rounded-lg transition-all cursor-pointer select-none group ${
+                      isGroupActive
+                        ? "text-text bg-accent/5 font-semibold border-l-2 border-accent"
+                        : "text-text-muted hover:bg-card-hover hover:text-text"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <CategoryIcon className={`w-4 h-4 transition-colors ${
+                        isGroupActive ? "text-accent" : "text-text-muted group-hover:text-text"
+                      }`} />
+                      <span className="uppercase tracking-wider">{group.category}</span>
+                      {isGroupActive && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_6px_#2EC5D4]" />
                       )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-bg text-text-muted/70 border border-border-soft">
+                        {group.items.length}
+                      </span>
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 text-text-muted transition-transform duration-200 ${
+                          isOpen ? "rotate-180 text-accent" : ""
+                        }`}
+                      />
+                    </div>
+                  </button>
+
+                  {/* Dropdown Menu Items */}
+                  {isOpen && (
+                    <div className="ml-3 pl-3 my-1 border-l-2 border-border-soft space-y-0.5">
+                      {group.items.map((item) => {
+                        const isActive = location === item.path || location.startsWith(item.path + '/');
+                        const ItemIcon = item.icon;
+
+                        return (
+                          <Link
+                            key={item.name}
+                            href={item.disabled ? "#" : item.path}
+                            onClick={(e) => {
+                              if (item.disabled) e.preventDefault();
+                            }}
+                            className={`flex items-center gap-2.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all group ${
+                              isActive
+                                ? "bg-accent/15 text-accent font-semibold shadow-sm"
+                                : item.disabled
+                                  ? "text-text-muted/40 cursor-not-allowed"
+                                  : "text-text-muted hover:bg-card-hover hover:text-text"
+                            }`}
+                          >
+                            <ItemIcon className={`w-3.5 h-3.5 shrink-0 ${
+                              isActive
+                                ? 'text-accent'
+                                : item.disabled
+                                  ? 'text-text-muted/30'
+                                  : 'text-text-muted group-hover:text-text'
+                            }`} />
+                            <span className="truncate">{item.name}</span>
+                            {item.disabled && (
+                              <span className="ml-auto text-[8px] uppercase tracking-widest font-bold bg-bg px-1.5 py-0.5 rounded text-text-muted/50 border border-border-soft">
+                                Soon
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Standalone Bottom Link: Profile */}
+          <div className="pt-2 border-t border-border-soft">
+            <Link
+              href="/student/profile"
+              className={`flex items-center gap-3 px-3.5 py-2.5 text-sm font-medium rounded-lg transition-all group ${
+                location === "/student/profile"
+                  ? "bg-accent/10 text-accent font-semibold relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-accent before:rounded-r-md shadow-sm"
+                  : "text-text-muted hover:bg-card-hover hover:text-text"
+              }`}
+            >
+              <UserCircle className={`w-4.5 h-4.5 ${location === "/student/profile" ? 'text-accent' : 'text-text-muted group-hover:text-text'}`} />
+              <span>Profile</span>
+            </Link>
+          </div>
         </nav>
         <div className="p-4 border-t border-border-soft">
           <button
