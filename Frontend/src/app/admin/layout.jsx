@@ -18,7 +18,9 @@ import {
   Code,
   Library,
   Scan,
-  Megaphone
+  Megaphone,
+  Flame,
+  Trophy
 } from "lucide-react";
 import axios from "axios";
 
@@ -95,6 +97,8 @@ export default function DashboardLayout({ children }) {
     { name: "Attendance", path: "/admin/attendance", icon: Scan },
     { name: "Team Roster", path: "/admin/team", icon: ShieldCheck },
     { name: "Question Bank", path: "/admin/questions", icon: Code },
+    { name: "Challenges", path: "/admin/challenges", icon: Flame },
+    { name: "Contests", path: "/admin/contests", icon: Trophy },
     { name: "Resources", path: "/admin/resources", icon: Library },
     { name: "Certificates", path: "/admin/certificates", icon: FileText },
     { name: "Boarding Passes", path: "/admin/boarding-passes", icon: Ticket },

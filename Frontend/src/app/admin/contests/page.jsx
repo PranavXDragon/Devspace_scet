@@ -26,8 +26,14 @@ export default function AdminContestsPage() {
 
   const fetchData = async () => {
     try {
-      const res = await axiosInstance.get('/challenges/contests/list'); // Reuse list for now
-      setContests(res.data || []);
+      let res;
+      try {
+        res = await axiosInstance.get('/admin/challenges/contests');
+      } catch {
+        res = await axiosInstance.get('/challenges/contests/list');
+      }
+      const list = res.data?.data || res.data || res || [];
+      setContests(Array.isArray(list) ? list : []);
     } catch (err) {
       console.error(err);
     } finally {

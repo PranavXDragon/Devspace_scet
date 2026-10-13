@@ -3,6 +3,19 @@ import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
+export const getAllChallenges = asyncHandler(async (req, res) => {
+    const { data: challenges, error } = await supabase
+        .from('challenges')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.warn("Could not fetch challenges from db:", error.message);
+        return res.status(200).json(new ApiResponse(200, [], "Challenges fetched"));
+    }
+    return res.status(200).json(new ApiResponse(200, challenges || [], "Challenges fetched"));
+});
+
 export const createChallenge = asyncHandler(async (req, res) => {
     const { title, description, start_time, end_time, problem_id, reward_points, type } = req.body;
 
@@ -39,6 +52,19 @@ export const deleteChallenge = asyncHandler(async (req, res) => {
 });
 
 // Contests
+export const getAllContests = asyncHandler(async (req, res) => {
+    const { data: contests, error } = await supabase
+        .from('contests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.warn("Could not fetch contests from db:", error.message);
+        return res.status(200).json(new ApiResponse(200, [], "Contests fetched"));
+    }
+    return res.status(200).json(new ApiResponse(200, contests || [], "Contests fetched"));
+});
+
 export const createContest = asyncHandler(async (req, res) => {
     const { title, description, start_time, end_time, duration_minutes } = req.body;
 

@@ -29,15 +29,13 @@ export default function AdminChallengesPage() {
 
   const fetchData = async () => {
     try {
-      // Need a way to fetch ALL challenges for admin, for now reusing active + past if possible.
-      // Wait, getActiveChallenges only gets active ones. I'll just use the active challenges endpoint for MVP,
-      // or we can assume it fetches all.
-      // Let's fetch problems for the dropdown
-      const probRes = await axiosInstance.get('/coding/problems');
-      setProblems(probRes.data || []);
+      const probRes = await axiosInstance.get('/admin/questions');
+      const pList = probRes.data?.data || probRes.data || probRes || [];
+      setProblems(Array.isArray(pList) ? pList : []);
       
-      const chalRes = await axiosInstance.get('/challenges'); // In a real app, this should be /admin/challenges to get all.
-      setChallenges(chalRes.data || []);
+      const chalRes = await axiosInstance.get('/admin/challenges');
+      const cList = chalRes.data?.data || chalRes.data || chalRes || [];
+      setChallenges(Array.isArray(cList) ? cList : []);
     } catch (err) {
       console.error(err);
     } finally {
