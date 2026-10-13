@@ -2,24 +2,57 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import axiosInstance from '@/services/axiosInstance';
-import { Flame, Clock, Code2, ArrowRight } from 'lucide-react';
+import { Flame, Clock, Code2, ArrowRight, RefreshCw } from 'lucide-react';
+
+const CHALLENGES_CACHE_KEY = 'devspace_challenges_cache';
 
 export default function ChallengesPage() {
-  const [challenges, setChallenges] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [challenges, setChallenges] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(CHALLENGES_CACHE_KEY);
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(CHALLENGES_CACHE_KEY);
+        if (cached) return false;
+      } catch (e) {}
+    }
+    return true;
+  });
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchChallenges = async (silent = false) => {
+    if (!silent) {
+      if (challenges.length === 0) setLoading(true);
+      else setIsRefreshing(true);
+    }
+    try {
+      const res = await axiosInstance.get('/challenges');
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      setChallenges(list);
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem(CHALLENGES_CACHE_KEY, JSON.stringify(list));
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.error('Failed to fetch challenges', err);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchChallenges = async () => {
-      try {
-        const res = await axiosInstance.get('/challenges');
-        setChallenges(res.data || []);
-      } catch (err) {
-        console.error('Failed to fetch challenges', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchChallenges();
+    fetchChallenges(challenges.length > 0);
   }, []);
 
   return (
@@ -32,11 +65,34 @@ export default function ChallengesPage() {
           </h1>
           <p className='text-text-muted mt-2'>Complete daily and weekly challenges to earn points and climb the leaderboard.</p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => fetchChallenges(false)}
+          disabled={isRefreshing || loading}
+          className="p-2.5 rounded-xl border border-border-soft hover:border-orange-500/40 text-text-muted hover:text-orange-400 bg-card transition-all disabled:opacity-50"
+          title="Refresh Challenges"
+        >
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-orange-400' : ''}`} />
+        </button>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
         {loading ? (
-          <p className="text-text-muted">Loading active challenges...</p>
+          // Shimmer Skeleton Loader
+          [1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className='bg-card border border-border-soft rounded-xl p-6 space-y-4 skeleton-shimmer flex flex-col justify-between h-56'>
+              <div className="flex justify-between items-center">
+                <div className="w-20 h-5 bg-card-hover rounded-full" />
+                <div className="w-16 h-5 bg-card-hover rounded" />
+              </div>
+              <div className="space-y-2">
+                <div className="w-4/5 h-6 bg-card-hover rounded" />
+                <div className="w-full h-10 bg-card-hover rounded" />
+              </div>
+              <div className="w-full h-10 bg-card-hover rounded-lg" />
+            </div>
+          ))
         ) : challenges.length === 0 ? (
           <div className="col-span-full text-center py-12 bg-card rounded-xl border border-border-soft">
             <Flame className="w-12 h-12 text-text-muted mx-auto mb-4" />

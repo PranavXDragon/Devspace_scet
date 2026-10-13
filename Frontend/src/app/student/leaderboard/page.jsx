@@ -3,29 +3,78 @@ import { useEffect, useState } from 'react';
 import axiosInstance from '@/services/axiosInstance';
 import { Medal, Trophy, Award, Search, Filter } from 'lucide-react';
 
+const LEADERBOARD_CACHE_PREFIX = 'devspace_leaderboard_cache_';
+
 export default function LeaderboardPage() {
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [filterCourse, setFilterCourse] = useState('ALL');
   const [filterBatch, setFilterBatch] = useState('ALL');
-  
+
+  const cacheKey = `${LEADERBOARD_CACHE_PREFIX}${filterCourse}_${filterBatch}`;
+
+  const [leaderboard, setLeaderboard] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(`${LEADERBOARD_CACHE_PREFIX}ALL_ALL`);
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return !sessionStorage.getItem(`${LEADERBOARD_CACHE_PREFIX}ALL_ALL`);
+      } catch (e) {}
+    }
+    return true;
+  });
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   // Assume we have these options or fetch them from backend
   const courses = ['ALL', 'B.Tech', 'BCA', 'MCA', 'B.Sc'];
   const batches = ['ALL', '2024', '2025', '2026', '2027'];
 
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      setLoading(true);
-      try {
-        const res = await axiosInstance.get(`/leaderboard?course=${filterCourse}&batch=${filterBatch}`);
-        setLeaderboard(res.data || []);
-      } catch (err) {
-        console.error('Failed to fetch leaderboard', err);
-      } finally {
-        setLoading(false);
+  const fetchLeaderboard = async (silent = false) => {
+    if (!silent) {
+      if (leaderboard.length === 0) setLoading(true);
+      else setIsRefreshing(true);
+    }
+    try {
+      const res = await axiosInstance.get(`/leaderboard?course=${filterCourse}&batch=${filterBatch}`);
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      setLeaderboard(list);
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem(cacheKey, JSON.stringify(list));
+        } catch (e) {}
       }
-    };
-    fetchLeaderboard();
+    } catch (err) {
+      console.error('Failed to fetch leaderboard', err);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    // Check if current filter combo is already in cache
+    let cachedList = null;
+    if (typeof window !== 'undefined') {
+      try {
+        const item = sessionStorage.getItem(cacheKey);
+        if (item) cachedList = JSON.parse(item);
+      } catch (e) {}
+    }
+
+    if (cachedList) {
+      setLeaderboard(cachedList);
+      setLoading(false);
+      fetchLeaderboard(true);
+    } else {
+      fetchLeaderboard(false);
+    }
   }, [filterCourse, filterBatch]);
 
   return (
@@ -79,7 +128,27 @@ export default function LeaderboardPage() {
           </thead>
           <tbody className='divide-y divide-border-soft'>
             {loading ? (
-              <tr><td colSpan='5' className='px-6 py-8 text-center text-text-muted'>Loading rankings...</td></tr>
+              // Shimmer Skeleton Rows
+              [1, 2, 3, 4, 5, 6].map((i) => (
+                <tr key={i} className="skeleton-shimmer">
+                  <td className="px-6 py-4">
+                    <div className="w-8 h-8 rounded-full bg-card-hover" />
+                  </td>
+                  <td className="px-6 py-4 space-y-1.5">
+                    <div className="w-36 h-4 bg-card-hover rounded" />
+                    <div className="w-48 h-3 bg-card-hover rounded" />
+                  </td>
+                  <td className="px-6 py-4 hidden md:table-cell">
+                    <div className="w-24 h-4 bg-card-hover rounded" />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="w-16 h-5 bg-card-hover rounded-full" />
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="w-12 h-5 bg-card-hover rounded ml-auto" />
+                  </td>
+                </tr>
+              ))
             ) : leaderboard.length === 0 ? (
               <tr><td colSpan='5' className='px-6 py-8 text-center text-text-muted'>No students found for this criteria</td></tr>
             ) : (

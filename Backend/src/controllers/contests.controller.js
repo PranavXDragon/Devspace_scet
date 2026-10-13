@@ -4,6 +4,7 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const getContests = asyncHandler(async (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
     const { data: contests, error } = await supabase
         .from('contests')
         .select('*')
@@ -15,6 +16,7 @@ export const getContests = asyncHandler(async (req, res) => {
 });
 
 export const getContestDetails = asyncHandler(async (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
     const { id } = req.params;
     
     // Fetch contest and its problems

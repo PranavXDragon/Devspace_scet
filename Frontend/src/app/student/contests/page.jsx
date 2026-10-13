@@ -1,25 +1,59 @@
 'use client';
 import { useEffect, useState } from 'react';
 import axiosInstance from '@/services/axiosInstance';
-import { Trophy, CalendarDays, Clock, ArrowRight } from 'lucide-react';
+import { Trophy, CalendarDays, Clock, ArrowRight, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
+const CONTESTS_CACHE_KEY = 'devspace_contests_cache';
+
 export default function ContestsPage() {
-  const [contests, setContests] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [contests, setContests] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(CONTESTS_CACHE_KEY);
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(CONTESTS_CACHE_KEY);
+        if (cached) return false;
+      } catch (e) {}
+    }
+    return true;
+  });
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchContests = async (silent = false) => {
+    if (!silent) {
+      if (contests.length === 0) setLoading(true);
+      else setIsRefreshing(true);
+    }
+    try {
+      const res = await axiosInstance.get('/challenges/contests/list');
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      setContests(list);
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem(CONTESTS_CACHE_KEY, JSON.stringify(list));
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.error('Failed to fetch contests', err);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchContests = async () => {
-      try {
-        const res = await axiosInstance.get('/challenges/contests/list');
-        setContests(res.data || []);
-      } catch (err) {
-        console.error('Failed to fetch contests', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchContests();
+    // SWR pattern: If cache exists, silently revalidate; otherwise fetch and show skeleton
+    fetchContests(contests.length > 0);
   }, []);
 
   return (
@@ -32,11 +66,32 @@ export default function ContestsPage() {
           </h1>
           <p className='text-text-muted mt-2'>Compete with peers in timed coding battles.</p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => fetchContests(false)}
+          disabled={isRefreshing || loading}
+          className="p-2.5 rounded-xl border border-border-soft hover:border-yellow-500/40 text-text-muted hover:text-yellow-400 bg-card transition-all disabled:opacity-50"
+          title="Refresh Contests"
+        >
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-yellow-400' : ''}`} />
+        </button>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
         {loading ? (
-          <p className="text-text-muted">Loading contests...</p>
+          // Shimmer Skeleton Loader (Instant feedback, no jarring plain text)
+          [1, 2, 3, 4].map((i) => (
+            <div key={i} className='bg-card border border-border-soft rounded-xl p-6 space-y-4 skeleton-shimmer'>
+              <div className="w-3/5 h-6 bg-card-hover rounded-md" />
+              <div className="w-4/5 h-4 bg-card-hover rounded" />
+              <div className="space-y-2.5 pt-2">
+                <div className="w-1/2 h-4 bg-card-hover rounded" />
+                <div className="w-2/5 h-4 bg-card-hover rounded" />
+              </div>
+              <div className="w-full h-11 bg-card-hover rounded-lg mt-4" />
+            </div>
+          ))
         ) : contests.length === 0 ? (
           <div className="col-span-full text-center py-12 bg-card rounded-xl border border-border-soft">
             <Trophy className="w-12 h-12 text-text-muted mx-auto mb-4" />

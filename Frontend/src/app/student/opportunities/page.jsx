@@ -1,28 +1,84 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Briefcase, Building2, MapPin, Clock, ExternalLink } from 'lucide-react';
+import { Briefcase, Building2, MapPin, Clock, ExternalLink, RefreshCw } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 
+const OPPORTUNITIES_CACHE_KEY = 'devspace_opportunities_cache';
+
 export default function OpportunitiesPage() {
-  const [opportunities, setOpportunities] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [opportunities, setOpportunities] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(OPPORTUNITIES_CACHE_KEY);
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return [];
+  });
 
-  useEffect(() => {
-    fetchOpportunities();
-  }, []);
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(OPPORTUNITIES_CACHE_KEY);
+        if (cached) return false;
+      } catch (e) {}
+    }
+    return true;
+  });
 
-  const fetchOpportunities = async () => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchOpportunities = async (silent = false) => {
+    if (!silent) {
+      if (opportunities.length === 0) setLoading(true);
+      else setIsRefreshing(true);
+    }
     try {
       const res = await axiosInstance.get('/career/opportunities');
-      setOpportunities(res.data || []);
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      setOpportunities(list);
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem(OPPORTUNITIES_CACHE_KEY, JSON.stringify(list));
+        } catch (e) {}
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
-  if (loading) return <div className="text-text-muted">Loading opportunities...</div>;
+  useEffect(() => {
+    fetchOpportunities(opportunities.length > 0);
+  }, []);
+
+  if (loading && opportunities.length === 0) {
+    return (
+      <div className='max-w-6xl mx-auto space-y-8'>
+        <div className="space-y-2">
+          <div className="w-56 h-8 bg-card rounded-lg skeleton-shimmer" />
+          <div className="w-80 h-4 bg-card rounded skeleton-shimmer" />
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="bg-card border border-border-soft rounded-xl p-6 space-y-4 skeleton-shimmer">
+              <div className="flex justify-between items-center">
+                <div className="w-48 h-6 bg-card-hover rounded" />
+                <div className="w-24 h-6 bg-card-hover rounded" />
+              </div>
+              <div className="w-3/4 h-4 bg-card-hover rounded" />
+              <div className="flex gap-4">
+                <div className="w-28 h-4 bg-card-hover rounded" />
+                <div className="w-28 h-4 bg-card-hover rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='max-w-6xl mx-auto space-y-8'>

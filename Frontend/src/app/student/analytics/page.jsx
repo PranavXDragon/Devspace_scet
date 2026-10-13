@@ -1,37 +1,91 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Activity, Target, Zap, TrendingUp } from 'lucide-react';
+import { Activity, Target, Zap, TrendingUp, RefreshCw } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { useUser } from '@clerk/nextjs';
 import { useStudentDashboard } from '../StudentDashboardContext';
+
+const ANALYTICS_CACHE_KEY = 'devspace_analytics_cache';
 
 export default function AnalyticsPage() {
   const { user } = useUser();
   const { dashboardData } = useStudentDashboard();
   const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
 
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(`${ANALYTICS_CACHE_KEY}_${studentId || 'default'}`);
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return null;
+  });
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [studentId]);
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(`${ANALYTICS_CACHE_KEY}_${studentId || 'default'}`);
+        if (cached) return false;
+      } catch (e) {}
+    }
+    return true;
+  });
 
-  const fetchAnalytics = async () => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchAnalytics = async (silent = false) => {
+    if (!silent) {
+      if (!data) setLoading(true);
+      else setIsRefreshing(true);
+    }
     try {
       const url = studentId 
         ? `/progress/analytics?student_id=${studentId}` 
         : `/progress/analytics`;
       const res = await axiosInstance.get(url);
-      setData(res.data);
+      const payload = res.data?.data || res.data;
+      setData(payload);
+      if (typeof window !== 'undefined' && payload) {
+        try {
+          sessionStorage.setItem(`${ANALYTICS_CACHE_KEY}_${studentId || 'default'}`, JSON.stringify(payload));
+        } catch (e) {}
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
-  if (loading) return <div className="text-text-muted">Loading analytics...</div>;
+  useEffect(() => {
+    fetchAnalytics(Boolean(data));
+  }, [studentId]);
+
+  if (loading && !data) {
+    return (
+      <div className='max-w-6xl mx-auto space-y-8'>
+        <div className="space-y-2">
+          <div className="w-48 h-8 bg-card rounded-lg skeleton-shimmer" />
+          <div className="w-72 h-4 bg-card rounded skeleton-shimmer" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-card border border-border-soft rounded-xl p-8 space-y-4 skeleton-shimmer flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full bg-card-hover" />
+            <div className="w-24 h-8 bg-card-hover rounded" />
+            <div className="w-32 h-4 bg-card-hover rounded" />
+          </div>
+          <div className="bg-card border border-border-soft rounded-xl p-8 space-y-4 skeleton-shimmer flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full bg-card-hover" />
+            <div className="w-24 h-8 bg-card-hover rounded" />
+            <div className="w-32 h-4 bg-card-hover rounded" />
+          </div>
+        </div>
+        <div className="bg-card border border-border-soft rounded-xl p-6 h-64 skeleton-shimmer" />
+      </div>
+    );
+  }
 
   const maxProblems = Math.max(...(data?.chart_data?.map(d => d.problems) || [1]));
 

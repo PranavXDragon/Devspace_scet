@@ -4,6 +4,7 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const getActiveChallenges = asyncHandler(async (req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
     // Get daily or active challenges
     const now = new Date().toISOString();
     
