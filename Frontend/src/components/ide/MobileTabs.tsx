@@ -16,6 +16,8 @@ interface MobileTabsProps {
   onInputChange: (input: string) => void;
   onClearInput: () => void;
   output: string[];
+  activeTab?: string;
+  onActiveTabChange?: (tab: string) => void;
 }
 
 export default function MobileTabs({
@@ -29,12 +31,16 @@ export default function MobileTabs({
   onInputChange,
   onClearInput,
   output,
+  activeTab: controlledTab,
+  onActiveTabChange,
 }: MobileTabsProps) {
-  const [activeTab, setActiveTab] = useState("editor");
+  const [internalTab, setInternalTab] = useState("editor");
+  const activeTab = controlledTab ?? internalTab;
+  const handleTabChange = onActiveTabChange ?? setInternalTab;
 
   return (
     <div className="flex flex-col h-full">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col h-full">
         <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="editor" className="flex items-center gap-2">
             <Code className="h-4 w-4" />
