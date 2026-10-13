@@ -178,15 +178,18 @@ export async function POST(request: NextRequest) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-        const judgeRes = await fetch('https://ce.judge0.com/submissions?wait=true', {
+        const b64Source = Buffer.from(code, 'utf8').toString('base64');
+        const b64Stdin = input ? Buffer.from(input, 'utf8').toString('base64') : '';
+
+        const judgeRes = await fetch('https://ce.judge0.com/submissions?wait=true&base64_encoded=true', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            source_code: code,
+            source_code: b64Source,
             language_id: judge0Id,
-            stdin: input || '',
+            stdin: b64Stdin,
           }),
           signal: controller.signal
         });
@@ -195,10 +198,19 @@ export async function POST(request: NextRequest) {
         if (judgeRes.ok) {
           const data = await judgeRes.json();
           
-          const rawStdout = data.stdout || '';
-          const rawStderr = data.stderr || '';
-          const compileOutput = data.compile_output || '';
-          const message = data.message || '';
+          const decodeB64 = (str?: string | null) => {
+            if (!str) return '';
+            try {
+              return Buffer.from(str, 'base64').toString('utf8');
+            } catch (e) {
+              return str;
+            }
+          };
+
+          const rawStdout = decodeB64(data.stdout);
+          const rawStderr = decodeB64(data.stderr);
+          const compileOutput = decodeB64(data.compile_output);
+          const message = decodeB64(data.message);
 
           const outputLines = rawStdout.split('\n').filter((l: string) => l.trim() !== '');
           const errorLines = [
@@ -214,10 +226,21 @@ export async function POST(request: NextRequest) {
             error: errorLines,
             success: isSuccess
           });
+        } else {
+          console.warn('Judge0 returned non-200 status:', judgeRes.status);
         }
       } catch (judgeErr) {
-        console.warn('Judge0 execution fallback to local executor:', judgeErr);
+        console.warn('Judge0 execution fallback:', judgeErr);
       }
+    }
+
+    // In serverless environments (Vercel), only Node.js is available. Do not attempt missing binaries for C++, Python, Java.
+    if ((process.env.VERCEL || process.env.NODE_ENV === 'production') && normLang !== 'javascript') {
+      return NextResponse.json({
+        output: [],
+        error: [`Compiler sandbox for ${language} is temporarily busy. Please wait 5 seconds and click Run again.`],
+        success: false
+      });
     }
 
     // 2. Secondary: Local System Execution Fallback
