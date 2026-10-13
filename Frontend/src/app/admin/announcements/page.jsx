@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Send, Loader2, CheckCircle2, AlertCircle, Filter, Users, GraduationCap } from "lucide-react";
@@ -59,9 +59,11 @@ export default function Announcements() {
 
       const response = await axiosInstance.post("/admin/announcement", payload);
 
-      setSuccessMessage(response.data.message || "Announcement sent successfully!");
-      if (response.data.data?.recipientCount !== undefined) {
-        setRecipientCount(response.data.data.recipientCount);
+      const msg = response?.message || response?.data?.message || "Announcement processed successfully!";
+      setSuccessMessage(msg);
+      const count = response?.data?.recipientCount ?? response?.recipientCount;
+      if (count !== undefined && count !== null) {
+        setRecipientCount(count);
       }
       reset(); // clear form
       setTimeout(() => setSuccessMessage(""), 5000);

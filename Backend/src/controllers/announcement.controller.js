@@ -57,18 +57,35 @@ const sendAnnouncement = asyncHandler(async (req, res) => {
 
   const emailTemplate = announcementEmail(subject, message);
 
-  // Send the bulk email
-  await sendEmail({
-    email: process.env.FROM_EMAIL,
-    bcc: emailList,               
-    subject,
-    message: emailTemplate.html,
-    textMessage: emailTemplate.text,
-  });
+  const isSmtpConfigured = process.env.SMTP_USER && !process.env.SMTP_USER.includes('your_smtp');
+  if (!isSmtpConfigured) {
+    console.log(`[ANNOUNCEMENT SIMULATED] Recipient count: ${emailList.length}. Emails:`, emailList);
+    return res.status(200).json(
+      new ApiResponse(
+        200, 
+        { recipientCount: emailList.length, simulated: true }, 
+        `Announcement dispatched to ${emailList.length} recipients (Simulated - configure SMTP in Vercel for live delivery).`
+      )
+    );
+  }
 
-  return res.status(200).json(
-    new ApiResponse(200, { recipientCount: emailList.length }, `Announcement sent successfully to ${emailList.length} recipients.`)
-  );
+  try {
+    // Send the bulk email
+    await sendEmail({
+      email: process.env.FROM_EMAIL,
+      bcc: emailList,               
+      subject,
+      message: emailTemplate.html,
+      textMessage: emailTemplate.text,
+    });
+
+    return res.status(200).json(
+      new ApiResponse(200, { recipientCount: emailList.length }, `Announcement sent successfully to ${emailList.length} recipients.`)
+    );
+  } catch (emailErr) {
+    console.error("Failed to deliver announcement email:", emailErr);
+    throw new ApiError(500, "Failed to send email via SMTP: " + emailErr.message);
+  }
 });
 
 export { sendAnnouncement };
