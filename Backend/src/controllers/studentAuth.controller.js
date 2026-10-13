@@ -151,19 +151,119 @@ const logoutStudent = asyncHandler(async (req, res) => {
 });
 
 const getStudentDashboard = asyncHandler(async (req, res) => {
-  const email = req.clerkUser.emailAddresses[0].emailAddress;
+  const email = req.clerkUser?.emailAddresses?.[0]?.emailAddress || req.userEmail;
+  const studentId = req.student?.id;
 
+  // Run queries safely in parallel
   const [
-    { data: registrations },
-    { data: boardingPasses },
-    { data: certificates }
-  ] = await Promise.all([
+    registrationsRes,
+    boardingPassesRes,
+    certificatesRes,
+    statsRowRes,
+    attendanceRes,
+    acceptedSubsRes,
+    challengesRes,
+    eventsRes,
+    roadmapsRes
+  ] = await Promise.allSettled([
     supabase.from('student_registrations').select('*').eq('email', email).order('created_at', { ascending: false }),
     supabase.from('boarding_passes').select('*').eq('studentEmail', email).order('created_at', { ascending: false }),
     supabase.from('certificates').select('*').eq('studentEmail', email).order('created_at', { ascending: false }),
+    studentId ? supabase.from('student_stats').select('*').eq('student_id', studentId).maybeSingle() : Promise.resolve({ data: null }),
+    supabase.from('attendance_records').select('date, created_at').or(`student_id.eq.${studentId || 'none'},student_id.eq.${email}`).order('date', { ascending: false }),
+    studentId ? supabase.from('problem_submissions').select('id, created_at, status').eq('student_id', studentId).eq('status', 'Accepted') : Promise.resolve({ data: [] }),
+    supabase.from('challenges').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('events').select('*').gte('date', new Date().toISOString().split('T')[0]).order('date', { ascending: true }).limit(3),
+    supabase.from('learning_roadmaps').select('*').limit(2)
   ]);
 
-  const clerkName = req.clerkUser.firstName ? `${req.clerkUser.firstName} ${req.clerkUser.lastName || ''}`.trim() : 'Developer';
+  const registrations = registrationsRes.status === 'fulfilled' ? registrationsRes.value?.data || [] : [];
+  const boardingPasses = boardingPassesRes.status === 'fulfilled' ? boardingPassesRes.value?.data || [] : [];
+  const certificates = certificatesRes.status === 'fulfilled' ? certificatesRes.value?.data || [] : [];
+  const statsRow = statsRowRes.status === 'fulfilled' ? statsRowRes.value?.data : null;
+  const attendanceList = attendanceRes.status === 'fulfilled' ? attendanceRes.value?.data || [] : [];
+  const acceptedSubs = acceptedSubsRes.status === 'fulfilled' ? acceptedSubsRes.value?.data || [] : [];
+  let latestChallenge = challengesRes.status === 'fulfilled' ? challengesRes.value?.data : null;
+  let upcomingEventsList = eventsRes.status === 'fulfilled' ? eventsRes.value?.data || [] : [];
+  const roadmapsList = roadmapsRes.status === 'fulfilled' ? roadmapsRes.value?.data || [] : [];
+
+  // Fallbacks for challenge if challenges table had none
+  if (!latestChallenge) {
+    try {
+      const { data: q } = await supabase.from('questions').select('id, title, difficulty, topic, points').eq('status', 'Published').limit(1).maybeSingle();
+      if (q) {
+        latestChallenge = {
+          id: q.id,
+          title: q.title,
+          difficulty: q.difficulty || 'Medium',
+          reward_points: q.points || 50,
+          type: 'question'
+        };
+      }
+    } catch (e) {}
+  }
+
+  // Fallbacks for events from student_events if events table had none
+  if (!upcomingEventsList.length) {
+    try {
+      const { data: studentEv } = await supabase.from('student_events').select('*').order('date_time', { ascending: true }).limit(3);
+      if (studentEv && studentEv.length) {
+        upcomingEventsList = studentEv.map(ev => ({
+          id: ev.id,
+          eventName: ev.title,
+          date: ev.date_time,
+          description: ev.description,
+          location: ev.location,
+          type: ev.type
+        }));
+      }
+    } catch (e) {}
+  }
+
+  // Calculate real attendance streak
+  const uniqueDates = Array.from(new Set(attendanceList.map(a => a.date?.split('T')[0]).filter(Boolean))).sort().reverse();
+  let attendanceStreak = 0;
+  if (uniqueDates.length > 0) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+
+    if (uniqueDates[0] === todayStr || uniqueDates[0] === yesterdayStr) {
+      let currentCheck = new Date(uniqueDates[0]);
+      attendanceStreak = 1;
+      for (let i = 1; i < uniqueDates.length; i++) {
+        const prevExpected = new Date(currentCheck);
+        prevExpected.setDate(prevExpected.getDate() - 1);
+        const prevExpectedStr = prevExpected.toISOString().split('T')[0];
+        if (uniqueDates[i] === prevExpectedStr) {
+          attendanceStreak++;
+          currentCheck = prevExpected;
+        } else {
+          break;
+        }
+      }
+    }
+  }
+
+  // Calculate real XP, Level, and Streak for this student
+  const attendanceCount = attendanceList.length;
+  const problemsSolvedCount = acceptedSubs.length;
+  const baseChallengePoints = statsRow?.total_points || 0;
+  
+  // Award 50 XP per attendance check-in + 100 XP per problem solved + points from completed challenges
+  const totalXP = baseChallengePoints + (attendanceCount * 50) + (problemsSolvedCount * 100);
+  const level = Math.max(1, Math.floor(totalXP / 250) + 1);
+  const xpNext = level * 250;
+  const finalStreak = Math.max(statsRow?.current_streak || 0, attendanceStreak);
+
+  // Collect distinct dates student was active (attendance check-in or code submission)
+  const activityDates = Array.from(new Set([
+    ...attendanceList.map(a => a.date?.split('T')[0]),
+    ...acceptedSubs.map(s => s.created_at?.split('T')[0])
+  ].filter(Boolean)));
+
+  const clerkName = req.clerkUser?.firstName ? `${req.clerkUser.firstName} ${req.clerkUser.lastName || ''}`.trim() : 'Developer';
   
   const profile = req.student ? {
     id: req.student.id,
@@ -174,7 +274,7 @@ const getStudentDashboard = asyncHandler(async (req, res) => {
     year: req.student.year,
     semester: req.student.semester,
     phone: req.student.phone,
-    github_username: req.student.github_username || req.clerkUser.username || null
+    github_username: req.student.github_username || req.clerkUser?.username || null
   } : {
     id: null,
     name: clerkName,
@@ -184,7 +284,7 @@ const getStudentDashboard = asyncHandler(async (req, res) => {
     year: 'N/A',
     semester: 'N/A',
     phone: 'N/A',
-    github_username: req.clerkUser.username || null
+    github_username: req.clerkUser?.username || null
   };
 
   return res.status(200).json(
@@ -192,7 +292,19 @@ const getStudentDashboard = asyncHandler(async (req, res) => {
       profile,
       registrations: registrations || [],
       boardingPasses: boardingPasses || [],
-      certificates: certificates || []
+      certificates: certificates || [],
+      stats: {
+        xp: totalXP,
+        level,
+        xpNext,
+        streak: finalStreak,
+        problemsSolved: problemsSolvedCount,
+        attendanceCount
+      },
+      todaysChallenge: latestChallenge,
+      upcomingEvents: upcomingEventsList,
+      learningCourses: roadmapsList,
+      activityDates
     }, 'Student dashboard data fetched successfully')
   );
 });
