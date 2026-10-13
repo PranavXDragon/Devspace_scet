@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { QrCode, ShieldCheck, Loader2 } from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
 
@@ -50,14 +50,18 @@ export default function VerificationDetailsForm({
           <ShieldCheck className="w-4 h-4 text-accent" /> Verification
           Required
         </div>
-        <Turnstile
-          siteKey={
-            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
-            "1x00000000000000000000AA"
-          }
-          onSuccess={(token) => setTurnstileToken(token)}
-          options={{ theme: "auto" }}
-        />
+        <div className="overflow-hidden h-[65px] max-h-[65px] rounded-lg">
+          <Turnstile
+            siteKey={
+              process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY &&
+              !process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY.includes('your_cloudflare')
+                ? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+                : "1x00000000000000000000AA"
+            }
+            onSuccess={(token) => setTurnstileToken(token)}
+            options={{ theme: "auto" }}
+          />
+        </div>
       </div>
 
       <button

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
@@ -227,11 +227,18 @@ const ContactSection = () => {
 
                   <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-border-soft">
                     <div className="w-full sm:w-auto flex justify-center scale-90 sm:scale-100 origin-left">
-                      <Turnstile
-                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
-                        onSuccess={(token) => setTurnstileToken(token)}
-                        options={{ theme: "auto" }}
-                      />
+                      <div className="overflow-hidden h-[65px] max-h-[65px] rounded-lg">
+                        <Turnstile
+                          siteKey={
+                            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY &&
+                            !process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY.includes('your_cloudflare')
+                              ? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+                              : "1x00000000000000000000AA"
+                          }
+                          onSuccess={(token) => setTurnstileToken(token)}
+                          options={{ theme: "auto" }}
+                        />
+                      </div>
                     </div>
 
                     <button
