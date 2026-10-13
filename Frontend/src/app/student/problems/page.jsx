@@ -57,13 +57,13 @@ export default function ProblemsPage() {
   }, []);
 
   return (
-    <div className='p-6 max-w-6xl mx-auto'>
-      <div className='flex justify-between items-center mb-6'>
-        <h1 className='text-3xl font-bold font-headline text-text flex items-center gap-3'>
-          <Code2 className="w-8 h-8 text-accent" />
+    <div className='p-3 sm:p-6 max-w-6xl mx-auto'>
+      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6'>
+        <h1 className='text-2xl sm:text-3xl font-bold font-headline text-text flex items-center gap-3'>
+          <Code2 className="w-7 h-7 sm:w-8 sm:h-8 text-accent" />
           Coding Problems
         </h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 self-end sm:self-auto">
           <button
             type="button"
             onClick={() => fetchProblems(false)}
@@ -73,13 +73,13 @@ export default function ProblemsPage() {
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-accent' : ''}`} />
           </button>
-          <Link href='/student/ide' className='px-4 py-2 bg-accent text-bg font-semibold rounded-lg hover:bg-accent/90 transition-all'>
+          <Link href='/student/ide' className='px-4 py-2 bg-accent text-bg font-semibold rounded-lg hover:bg-accent/90 transition-all text-xs sm:text-sm'>
             Open Free IDE
           </Link>
         </div>
       </div>
 
-      <div className='bg-card rounded-lg overflow-hidden border border-border-soft'>
+      <div className='bg-card rounded-lg overflow-x-auto border border-border-soft'>
         <table className='w-full text-left'>
           <thead className='bg-card-hover text-text-muted'>
             <tr>

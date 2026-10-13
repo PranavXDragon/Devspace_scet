@@ -18,18 +18,18 @@ export default function StudentDashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
       {/* Header Area */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-text">Good Morning, {data?.profile?.name?.split(' ')[0] || "Pranav"} 👋</h1>
-          <p className="text-text-muted mt-2 text-lg">Keep your {streak}-day streak alive! 🔥</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-text">Good Morning, {data?.profile?.name?.split(' ')[0] || "Pranav"} 👋</h1>
+          <p className="text-text-muted mt-1 sm:mt-2 text-base sm:text-lg">Keep your {streak}-day streak alive! 🔥</p>
         </div>
         
         {/* Quick Level Info */}
-        <div className="flex items-center gap-4 bg-card px-5 py-3 rounded-2xl border border-border">
-          <div className="flex flex-col">
+        <div className="flex items-center gap-4 bg-card px-4 sm:px-5 py-3 rounded-2xl border border-border w-full sm:w-auto justify-between sm:justify-start">
+          <div className="flex flex-col w-full sm:w-auto">
             <span className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Level {level}</span>
             <div className="flex items-center gap-3">
-              <div className="w-32 h-2 bg-bg rounded-full overflow-hidden">
+              <div className="w-28 sm:w-32 h-2 bg-bg rounded-full overflow-hidden flex-1 sm:flex-initial">
                 <div className="h-full bg-accent rounded-full" style={{ width: `${xpPercentage}%` }}></div>
               </div>
               <span className="text-sm font-semibold text-text">{xp} XP</span>

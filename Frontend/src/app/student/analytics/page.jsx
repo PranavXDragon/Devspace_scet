@@ -90,44 +90,56 @@ export default function AnalyticsPage() {
   const maxProblems = Math.max(...(data?.chart_data?.map(d => d.problems) || [1]));
 
   return (
-    <div className='max-w-6xl mx-auto space-y-8'>
-      <div>
-        <h1 className='text-3xl font-bold font-headline text-text flex items-center gap-3'>
-          <Activity className="w-8 h-8 text-blue-500" /> My Progress
-        </h1>
-        <p className='text-text-muted mt-2'>Track your learning journey and problem-solving activity.</p>
+    <div className='max-w-6xl mx-auto space-y-6 sm:space-y-8'>
+      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
+        <div>
+          <h1 className='text-2xl sm:text-3xl font-bold font-headline text-text flex items-center gap-3'>
+            <Activity className="w-7 h-7 sm:w-8 sm:h-8 text-blue-500 shrink-0" /> My Progress
+          </h1>
+          <p className='text-text-muted mt-1 sm:mt-2 text-sm sm:text-base'>Track your learning journey and problem-solving activity.</p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => fetchAnalytics(false)}
+          disabled={isRefreshing || loading}
+          className="self-end sm:self-auto p-2.5 rounded-xl border border-border-soft hover:border-blue-500/40 text-text-muted hover:text-blue-400 bg-card transition-all disabled:opacity-50"
+          title="Refresh Analytics"
+        >
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-blue-400' : ''}`} />
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* KPI Cards */}
-        <div className="bg-card border border-border-soft rounded-xl p-6 flex flex-col items-center justify-center shadow-sm">
-          <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 mb-4">
-            <Target className="w-8 h-8" />
+        <div className="bg-card border border-border-soft rounded-xl p-5 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 mb-4">
+            <Target className="w-7 h-7 sm:w-8 sm:h-8" />
           </div>
-          <h3 className="text-4xl font-black font-headline text-text mb-1">{data?.total_problems_solved || 0}</h3>
+          <h3 className="text-3xl sm:text-4xl font-black font-headline text-text mb-1">{data?.total_problems_solved || 0}</h3>
           <p className="text-text-muted uppercase tracking-widest text-xs font-bold">Problems Solved</p>
         </div>
 
-        <div className="bg-card border border-border-soft rounded-xl p-6 flex flex-col items-center justify-center shadow-sm">
-          <div className="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500 mb-4">
-            <Zap className="w-8 h-8" />
+        <div className="bg-card border border-border-soft rounded-xl p-5 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500 mb-4">
+            <Zap className="w-7 h-7 sm:w-8 sm:h-8" />
           </div>
-          <h3 className="text-4xl font-black font-headline text-text mb-1">{data?.total_points || 0}</h3>
+          <h3 className="text-3xl sm:text-4xl font-black font-headline text-text mb-1">{data?.total_points || 0}</h3>
           <p className="text-text-muted uppercase tracking-widest text-xs font-bold">Total XP Earned</p>
         </div>
       </div>
 
       {/* Activity Chart */}
-      <div className="bg-card border border-border-soft rounded-xl p-8 shadow-sm">
-        <h3 className="text-xl font-bold text-text mb-8 flex items-center gap-2">
+      <div className="bg-card border border-border-soft rounded-xl p-4 sm:p-8 shadow-sm overflow-hidden">
+        <h3 className="text-lg sm:text-xl font-bold text-text mb-6 sm:mb-8 flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-green-500" /> Activity (Last 6 Months)
         </h3>
         
-        <div className="h-64 flex items-end justify-between gap-2">
+        <div className="h-56 sm:h-64 flex items-end justify-between gap-1 sm:gap-2">
           {data?.chart_data?.map((month, i) => {
             const height = maxProblems > 0 ? (month.problems / maxProblems) * 100 : 0;
             return (
-              <div key={i} className="flex-1 flex flex-col items-center gap-4 group">
+              <div key={i} className="flex-1 flex flex-col items-center gap-3 sm:gap-4 group">
                 <div className="w-full relative flex-1 flex items-end justify-center rounded bg-card-hover group-hover:bg-card-hover/50 transition-colors">
                   <div 
                     className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t transition-all duration-500 ease-out" 
@@ -138,7 +150,7 @@ export default function AnalyticsPage() {
                     </div>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-text-muted uppercase">{month.name}</span>
+                <span className="text-[10px] sm:text-xs font-bold text-text-muted uppercase">{month.name}</span>
               </div>
             );
           })}

@@ -88,25 +88,25 @@ export default function LeaderboardPage() {
           <p className='text-text-muted mt-2'>See how you rank among your peers in DevSpace.</p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-card border border-border-soft rounded-lg px-3 py-2">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 bg-card border border-border-soft rounded-lg px-3 py-2 flex-1 sm:flex-initial">
             <Filter className="w-4 h-4 text-text-muted" />
             <select 
               value={filterCourse}
               onChange={(e) => setFilterCourse(e.target.value)}
-              className="bg-transparent text-sm text-text outline-none"
+              className="bg-transparent text-sm text-text outline-none w-full"
             >
               <option value="ALL">All Courses</option>
               {courses.filter(c => c !== 'ALL').map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           
-          <div className="flex items-center gap-2 bg-card border border-border-soft rounded-lg px-3 py-2">
+          <div className="flex items-center gap-2 bg-card border border-border-soft rounded-lg px-3 py-2 flex-1 sm:flex-initial">
             <Filter className="w-4 h-4 text-text-muted" />
             <select 
               value={filterBatch}
               onChange={(e) => setFilterBatch(e.target.value)}
-              className="bg-transparent text-sm text-text outline-none"
+              className="bg-transparent text-sm text-text outline-none w-full"
             >
               <option value="ALL">All Batches</option>
               {batches.filter(b => b !== 'ALL').map(b => <option key={b} value={b}>{b}</option>)}
@@ -115,7 +115,7 @@ export default function LeaderboardPage() {
         </div>
       </div>
 
-      <div className='bg-card rounded-xl border border-border-soft overflow-hidden'>
+      <div className='bg-card rounded-xl border border-border-soft overflow-x-auto'>
         <table className='w-full text-left border-collapse'>
           <thead className='bg-card-hover text-text-muted text-sm uppercase tracking-wider'>
             <tr>

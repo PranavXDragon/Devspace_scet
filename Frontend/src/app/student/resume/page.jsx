@@ -137,10 +137,32 @@ export default function ResumePage() {
   const studentId = dashboardData?.profile?.id || user?.publicMetadata?.studentId || user?.id;
 
   // View mode: 'split' (desktop dual view), 'editor' (form only), 'preview' (full A4 preview)
-  const [viewMode, setViewMode] = useState('split');
-  const [zoomScale, setZoomScale] = useState(0.9); // 0.75, 0.9, 1
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) return 'editor';
+    return 'split';
+  });
+  const [zoomScale, setZoomScale] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 640) return 0.55;
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) return 0.75;
+    return 0.9;
+  });
   const [isSyncing, setIsSyncing] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
+
+  // Auto-adjust view mode and zoom scale on window resize for optimal responsiveness
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window === 'undefined') return;
+      if (window.innerWidth < 1024 && viewMode === 'split') {
+        setViewMode('editor');
+      }
+      if (window.innerWidth < 640 && zoomScale > 0.6) {
+        setZoomScale(0.55);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [viewMode, zoomScale]);
 
   // Cloud persistence state
   const [isCloudSaving, setIsCloudSaving] = useState(false);
@@ -601,17 +623,17 @@ export default function ResumePage() {
               <span className="text-[11px] font-mono mr-1">Zoom:</span>
               <button
                 type="button"
-                onClick={() => setZoomScale(z => Math.max(0.65, z - 0.1))}
-                className="p-1 hover:text-text rounded"
+                onClick={() => setZoomScale(z => Math.max(0.45, Number((z - 0.1).toFixed(2))))}
+                className="p-1 hover:text-text rounded transition-colors"
                 title="Zoom Out"
               >
                 <ZoomOut className="w-3.5 h-3.5" />
               </button>
-              <span className="font-mono text-[11px] px-1">{Math.round(zoomScale * 100)}%</span>
+              <span className="font-mono text-[11px] px-1 min-w-[2.5rem] text-center">{Math.round(zoomScale * 100)}%</span>
               <button
                 type="button"
-                onClick={() => setZoomScale(z => Math.min(1.1, z + 0.1))}
-                className="p-1 hover:text-text rounded"
+                onClick={() => setZoomScale(z => Math.min(1.2, Number((z + 0.1).toFixed(2))))}
+                className="p-1 hover:text-text rounded transition-colors"
                 title="Zoom In"
               >
                 <ZoomIn className="w-3.5 h-3.5" />
