@@ -244,15 +244,15 @@ export default function ResumeForm({
   return (
     <div className="bg-card border border-border-soft rounded-2xl overflow-hidden shadow-sm flex flex-col h-full">
       {/* Top Form Controls / Action Bar */}
-      <div className="p-4 border-b border-border-soft flex flex-wrap items-center justify-between gap-3 bg-card-hover/40">
+      <div className="p-3 sm:p-4 border-b border-border-soft flex flex-wrap items-center justify-between gap-2 sm:gap-3 bg-card-hover/40">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-text-muted">Editor Mode:</span>
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-text-muted">Editor Mode:</span>
           <span className="text-xs font-mono px-2 py-0.5 rounded bg-accent/10 text-accent font-semibold">
             {navTabs.find(t => t.id === activeTab)?.label}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
           {onSaveCloud && (
             <button
               type="button"
@@ -323,7 +323,7 @@ export default function ResumeForm({
       </div>
 
       {/* Editor Content Area */}
-      <div className="p-6 overflow-y-auto max-h-[calc(100vh-220px)] space-y-6">
+      <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(100vh-220px)] space-y-6">
 
         {/* ================================================================= */}
         {/* DESIGN & STYLE TAB */}
@@ -419,13 +419,13 @@ export default function ResumeForm({
                 <label className="text-xs font-bold uppercase tracking-wider text-text block mb-2">
                   Line Density & Spacing
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                   {['compact', 'normal', 'relaxed'].map((sp) => (
                     <button
                       key={sp}
                       type="button"
                       onClick={() => setSettings(s => ({ ...s, spacing: sp }))}
-                      className={`py-2 text-xs font-semibold capitalize rounded-lg border transition-all ${
+                      className={`py-2 text-[11px] sm:text-xs font-semibold capitalize rounded-lg border transition-all ${
                         settings.spacing === sp
                           ? 'border-accent bg-accent/10 text-accent'
                           : 'border-border-soft text-text-muted hover:text-text'
@@ -441,7 +441,7 @@ export default function ResumeForm({
                 <label className="text-xs font-bold uppercase tracking-wider text-text block mb-2">
                   Font Size Scale
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                   {[
                     { id: 'sm', label: 'Small (1-Page)' },
                     { id: 'base', label: 'Standard' },
@@ -451,11 +451,7 @@ export default function ResumeForm({
                       key={sz.id}
                       type="button"
                       onClick={() => setSettings(s => ({ ...s, fontSize: sz.id }))}
-                      className={`py-2 text-xs font-semibold rounded-lg border transition-all ${
-                        settings.fontSize === sz.id
-                          ? 'border-accent bg-accent/10 text-accent'
-                          : 'border-border-soft text-text-muted hover:text-text'
-                      }`}
+                      className={`py-2 text-[10px] sm:text-xs font-semibold rounded-lg border transition-all px-1`}
                     >
                       {sz.label}
                     </button>
