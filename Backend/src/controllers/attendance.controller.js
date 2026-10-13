@@ -7,7 +7,6 @@ import crypto from "crypto";
 // Class Location Constants (Surat campus default, configurable via env)
 const CLASS_LAT = parseFloat(process.env.CLASS_LAT || '21.1702');
 const CLASS_LNG = parseFloat(process.env.CLASS_LNG || '72.8311');
-const MAX_DISTANCE_METERS = parseInt(process.env.MAX_DISTANCE_METERS || '500000', 10); // 500km default for flexible testing
 const QR_EXPIRY_MS = 15 * 60 * 1000; // 15 mins
 const SECRET_KEY = process.env.QR_SECRET_KEY || 'devspace_super_secret';
 
@@ -45,12 +44,7 @@ export const generateQR = asyncHandler(async (req, res) => {
 });
 
 export const markAttendance = asyncHandler(async (req, res) => {
-    const { qrData, location, deviceFingerprint } = req.body;
-    const studentId = req.student?.id || req.student?.studentId || req.auth?.userId || req.user?.id || 'demo-student';
-
-    if (!studentId) {
-        throw new ApiError(401, "Unauthorized");
-    }
+    const { qrData, location, deviceFingerprint, studentIdentifier } = req.body;
 
     if (!qrData || !qrData.sessionId || !qrData.timestamp || !qrData.hash) {
         throw new ApiError(400, "Invalid QR code data");
@@ -69,7 +63,37 @@ export const markAttendance = asyncHandler(async (req, res) => {
         throw new ApiError(400, "QR code has expired. Please ask the instructor to regenerate.");
     }
 
-    // 3. Verify Geolocation (if location provided and strict geo enabled)
+    // Identify Student
+    let studentId = req.student?.id;
+    let studentName = req.student?.name || 'Student';
+    let studentEmail = req.userEmail || (typeof studentIdentifier === 'string' && studentIdentifier.includes('@') ? studentIdentifier.trim() : null);
+    let studentCode = typeof studentIdentifier === 'string' && !studentIdentifier.includes('@') ? studentIdentifier.trim() : null;
+
+    if (!studentId && (studentEmail || studentCode)) {
+        try {
+            let query = supabase.from('student_registrations').select('*');
+            if (studentEmail) query = query.eq('email', studentEmail);
+            else if (studentCode) query = query.eq('studentId', studentCode);
+            
+            const { data: found } = await query.limit(1).maybeSingle();
+            if (found) {
+                studentId = found.id;
+                studentName = found.name;
+            } else {
+                studentId = studentCode || studentEmail;
+                studentName = studentCode || studentEmail;
+            }
+        } catch (lookupErr) {
+            studentId = studentCode || studentEmail;
+            studentName = studentCode || studentEmail;
+        }
+    }
+
+    if (!studentId) {
+        studentId = req.clerkUserId || 'attendee-' + (deviceFingerprint || Date.now());
+    }
+
+    // 3. Verify Geolocation (flexible/configurable)
     let distance = 0;
     if (location && typeof location.lat === 'number' && typeof location.lng === 'number') {
         distance = getDistanceFromLatLngInMeters(
@@ -107,6 +131,7 @@ export const markAttendance = asyncHandler(async (req, res) => {
     let record = {
         id: crypto.randomUUID(),
         student_id: studentId,
+        student_name: studentName,
         date: today,
         status: 'present',
         device_fingerprint: deviceFingerprint || 'unknown-device',
@@ -131,11 +156,11 @@ export const markAttendance = asyncHandler(async (req, res) => {
             record = inserted;
         }
     } catch (dbErr) {
-        console.warn("Attendance recorded in memory/session (DB table not yet created):", dbErr.message);
+        console.warn("Attendance recorded in session (DB table check):", dbErr.message);
     }
 
     return res.status(200).json(
-        new ApiResponse(200, record, "Attendance marked successfully!")
+        new ApiResponse(200, record, `Attendance marked successfully for ${studentName}!`)
     );
 });
 

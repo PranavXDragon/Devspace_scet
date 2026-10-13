@@ -1,10 +1,22 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-const isProtectedRoute = createRouteMatcher(['/student(.*)']);
+// Routes that MUST remain public and never redirect to Clerk login wall
+const isPublicRoute = createRouteMatcher([
+  '/',
+  '/student/attendance(.*)',
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+  '/events(.*)',
+  '/team(.*)',
+  '/verify-(.*)',
+  '/api/(.*)',
+]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    await auth.protect();
+  if (!isPublicRoute(req) && req.nextUrl.pathname.startsWith('/student')) {
+    await auth.protect({
+      unauthenticatedUrl: new URL('/sign-in', req.url).toString(),
+    });
   }
 });
 
