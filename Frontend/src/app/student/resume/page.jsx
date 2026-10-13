@@ -2,9 +2,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   FileText, Download, RefreshCw, Sparkles, Eye, Edit3, 
-  Columns, ZoomIn, ZoomOut, Check, Printer, ChevronDown 
+  Columns, ZoomIn, ZoomOut, Check, Printer, ChevronDown,
+  UploadCloud, Cloud, Loader2
 } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
+import { studentService } from '@/services/studentService';
 import { useUser } from '@clerk/nextjs';
 import { useStudentDashboard } from '../StudentDashboardContext';
 import { useConfirm } from '@/context/ConfirmContext';
@@ -140,6 +142,14 @@ export default function ResumePage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
 
+  // Cloud persistence state
+  const [isCloudSaving, setIsCloudSaving] = useState(false);
+  const [cloudStatus, setCloudStatus] = useState('idle'); // 'idle' | 'saving' | 'synced' | 'unsaved' | 'error'
+  const [lastCloudSavedAt, setLastCloudSavedAt] = useState(null);
+  const [hasCloudDraftAvailable, setHasCloudDraftAvailable] = useState(false);
+  const [cloudDraftData, setCloudDraftData] = useState(null);
+  const [cloudBannerDismissed, setCloudBannerDismissed] = useState(false);
+
   const [resumeData, setResumeData] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -172,7 +182,7 @@ export default function ResumePage() {
           data: resumeData,
           settings: designSettings
         }));
-        setSaveStatus('Auto-saved');
+        setSaveStatus('Local Auto-saved');
         const timer = setTimeout(() => setSaveStatus(''), 2000);
         return () => clearTimeout(timer);
       } catch (e) {
@@ -180,6 +190,116 @@ export default function ResumePage() {
       }
     }
   }, [resumeData, designSettings]);
+
+  // Initial fetch of Cloud Draft from Supabase
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCloudDraft = async () => {
+      try {
+        const res = await studentService.getResumeDraft();
+        const payload = res.data?.data;
+        if (payload?.resumeData && isMounted) {
+          setCloudDraftData(payload);
+          setLastCloudSavedAt(payload.updatedAt);
+
+          // Check if local storage was just default sample
+          const localStored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
+          let isLocalStorageDefault = true;
+          if (localStored) {
+            try {
+              const parsed = JSON.parse(localStored);
+              isLocalStorageDefault = !parsed.data || parsed.data.personal?.fullName === SAMPLE_RESUME_DATA.personal.fullName;
+            } catch {
+              isLocalStorageDefault = true;
+            }
+          }
+
+          if (isLocalStorageDefault) {
+            // Automatically populate cloud draft for cross-device continuity
+            setResumeData(payload.resumeData);
+            if (payload.designSettings) {
+              setDesignSettings(payload.designSettings);
+            }
+            setCloudStatus('synced');
+          } else {
+            // User has distinct local data, show cloud option
+            setHasCloudDraftAvailable(true);
+            setCloudStatus('synced');
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch cloud resume draft:", err?.message);
+      }
+    };
+
+    if (user) {
+      fetchCloudDraft();
+    }
+    return () => { isMounted = false; };
+  }, [user]);
+
+  // Save to Supabase Cloud handler
+  const handleSaveToCloud = async (overrideData = null, overrideSettings = null) => {
+    const dataToSave = overrideData || resumeData;
+    const settingsToSave = overrideSettings || designSettings;
+    try {
+      setIsCloudSaving(true);
+      setCloudStatus('saving');
+      const res = await studentService.saveResumeDraft({
+        resumeData: dataToSave,
+        designSettings: settingsToSave
+      });
+      const updatedAt = res.data?.data?.updatedAt || new Date().toISOString();
+      setLastCloudSavedAt(updatedAt);
+      setCloudStatus('synced');
+      setHasCloudDraftAvailable(false);
+      setSaveStatus('Cloud Synced');
+      const timer = setTimeout(() => setSaveStatus(''), 2500);
+      return () => clearTimeout(timer);
+    } catch (err) {
+      console.error("Failed to save resume to cloud:", err);
+      setCloudStatus('error');
+    } finally {
+      setIsCloudSaving(false);
+    }
+  };
+
+  // Debounced auto-save to cloud on edits
+  useEffect(() => {
+    if (!user) return;
+    // Don't auto-save if data is untouched default sample
+    const isSample = resumeData.personal?.fullName === SAMPLE_RESUME_DATA.personal.fullName && !lastCloudSavedAt;
+    if (isSample) return;
+
+    setCloudStatus('unsaved');
+    const timer = setTimeout(() => {
+      handleSaveToCloud();
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [resumeData, designSettings, user]);
+
+  // Handler to load cloud draft
+  const handleLoadCloudDraft = async () => {
+    if (!cloudDraftData?.resumeData) return;
+    const isConfirmed = await confirm({
+      title: "Load Cloud Resume Draft",
+      message: `Replace editor content with your cloud draft saved on ${new Date(cloudDraftData.updatedAt || Date.now()).toLocaleString()}?`,
+      confirmText: "Load Cloud Draft",
+      cancelText: "Keep Local Draft",
+      type: "accent"
+    });
+
+    if (isConfirmed) {
+      setResumeData(cloudDraftData.resumeData);
+      if (cloudDraftData.designSettings) {
+        setDesignSettings(cloudDraftData.designSettings);
+      }
+      setCloudStatus('synced');
+      setHasCloudDraftAvailable(false);
+      setCloudBannerDismissed(true);
+    }
+  };
 
   // Initial sync from user's Clerk and DevSpace profiles if not customized
   useEffect(() => {
@@ -289,6 +409,47 @@ export default function ResumePage() {
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       
       {/* =================================================================== */}
+      {/* Cloud Draft Discovery Notification (Shown if cloud has saved draft) */}
+      {/* =================================================================== */}
+      {hasCloudDraftAvailable && !cloudBannerDismissed && cloudDraftData && (
+        <div className="no-print bg-cyan-950/40 border border-cyan-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg backdrop-blur-md animate-fadeIn">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shrink-0">
+              <UploadCloud className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-text flex items-center gap-2">
+                <span>Cloud Resume Draft Available</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300">
+                  Supabase Synced
+                </span>
+              </p>
+              <p className="text-xs text-text-muted mt-0.5">
+                We found your saved cloud resume from {new Date(cloudDraftData.updatedAt || Date.now()).toLocaleDateString()} at {new Date(cloudDraftData.updatedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}. Would you like to load it?
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={handleLoadCloudDraft}
+              className="px-3.5 py-1.5 bg-accent hover:bg-accent/90 text-bg font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+            >
+              <UploadCloud className="w-3.5 h-3.5" />
+              <span>Load Cloud Draft</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCloudBannerDismissed(true)}
+              className="px-3 py-1.5 bg-bg-soft border border-border-soft hover:border-border text-text-muted hover:text-text font-medium text-xs rounded-xl transition-all"
+            >
+              Keep Local
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* =================================================================== */}
       {/* Header & Quick Action Bar (Hidden during print) */}
       {/* =================================================================== */}
       <div className="no-print bg-card border border-border-soft rounded-2xl p-5 shadow-sm space-y-4">
@@ -299,16 +460,39 @@ export default function ResumePage() {
                 <FileText className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold font-headline text-text flex items-center gap-2">
-                  DevSpace Resume Studio
+                <h1 className="text-2xl font-bold font-headline text-text flex items-center gap-2 flex-wrap">
+                  <span>DevSpace Resume Studio</span>
                   {saveStatus && (
-                    <span className="text-[11px] font-mono font-normal text-accent bg-accent/10 px-2 py-0.5 rounded-full animate-pulse">
+                    <span className="text-[11px] font-mono font-normal text-accent bg-accent/10 px-2 py-0.5 rounded-full">
                       {saveStatus}
+                    </span>
+                  )}
+                  {cloudStatus === 'saving' && (
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-0.5 rounded-full animate-pulse">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Syncing Cloud...
+                    </span>
+                  )}
+                  {cloudStatus === 'synced' && (
+                    <span 
+                      className="inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full"
+                      title={lastCloudSavedAt ? `Synced at ${new Date(lastCloudSavedAt).toLocaleTimeString()}` : 'Cloud Synced'}
+                    >
+                      <Check className="w-3 h-3 text-emerald-400" /> Cloud Synced
+                    </span>
+                  )}
+                  {cloudStatus === 'unsaved' && (
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full">
+                      <Cloud className="w-3 h-3 text-amber-400" /> Cloud Unsaved
+                    </span>
+                  )}
+                  {cloudStatus === 'error' && (
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-0.5 rounded-full">
+                      Sync Error
                     </span>
                   )}
                 </h1>
                 <p className="text-xs text-text-muted mt-0.5">
-                  Design, customize layouts, edit content, and export an ATS-optimized developer resume.
+                  Design, customize layouts, edit content, and sync your ATS-optimized resume securely across all devices.
                 </p>
               </div>
             </div>
@@ -357,6 +541,22 @@ export default function ResumePage() {
                 <span>Preview</span>
               </button>
             </div>
+
+            {/* Cloud Sync Button */}
+            <button
+              type="button"
+              onClick={() => handleSaveToCloud()}
+              disabled={isCloudSaving}
+              className="px-3.5 py-2 bg-card border border-accent/40 text-accent hover:bg-accent/10 font-bold text-xs rounded-xl flex items-center gap-2 shadow-sm transition-all disabled:opacity-60"
+              title="Save resume draft securely to Supabase Cloud - access it from any phone, laptop, or browser"
+            >
+              {isCloudSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin text-accent" />
+              ) : (
+                <UploadCloud className="w-4 h-4 text-accent" />
+              )}
+              <span>{isCloudSaving ? 'Saving...' : 'Save to Cloud'}</span>
+            </button>
 
             {/* Print / Save PDF Button */}
             <button
@@ -443,6 +643,10 @@ export default function ResumePage() {
               onSyncDevSpace={handleSyncDevSpace}
               onLoadSampleData={handleLoadSampleData}
               isSyncing={isSyncing}
+              onSaveCloud={() => handleSaveToCloud()}
+              isCloudSaving={isCloudSaving}
+              cloudStatus={cloudStatus}
+              lastCloudSavedAt={lastCloudSavedAt}
             />
           </div>
         )}

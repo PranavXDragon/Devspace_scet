@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { 
   User, Briefcase, Code, GraduationCap, Award, Palette, 
   Plus, Trash2, ChevronDown, ChevronUp, Sparkles, Terminal, 
-  RefreshCw, Layout, Type, MoveVertical, ShieldCheck, Check
+  RefreshCw, Layout, Type, MoveVertical, ShieldCheck, Check,
+  UploadCloud, Loader2
 } from 'lucide-react';
 
 export default function ResumeForm({ 
@@ -13,7 +14,11 @@ export default function ResumeForm({
   setSettings, 
   onSyncDevSpace, 
   onLoadSampleData, 
-  isSyncing 
+  isSyncing,
+  onSaveCloud,
+  isCloudSaving,
+  cloudStatus,
+  lastCloudSavedAt
 }) {
   const [activeTab, setActiveTab] = useState('personal');
 
@@ -247,7 +252,24 @@ export default function ResumeForm({
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {onSaveCloud && (
+            <button
+              type="button"
+              onClick={onSaveCloud}
+              disabled={isCloudSaving}
+              className="text-xs px-2.5 py-1.5 rounded-lg border border-accent/40 bg-accent/10 hover:bg-accent/20 text-accent font-semibold transition-all flex items-center gap-1.5 disabled:opacity-60"
+              title="Save draft to Supabase Cloud - access it from any device"
+            >
+              {isCloudSaving ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <UploadCloud className="w-3.5 h-3.5" />
+              )}
+              <span>{isCloudSaving ? 'Saving...' : 'Save to Cloud'}</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={onSyncDevSpace}

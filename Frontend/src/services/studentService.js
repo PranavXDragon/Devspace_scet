@@ -20,6 +20,14 @@ class StudentService {
   async updateGithubUsername(github_username) {
     return axiosInstance.patch("/students/github", { github_username });
   }
+
+  async getResumeDraft() {
+    return axiosInstance.get("/students/resume");
+  }
+
+  async saveResumeDraft(payload) {
+    return axiosInstance.post("/students/resume", payload);
+  }
 }
 
 export const studentService = new StudentService();

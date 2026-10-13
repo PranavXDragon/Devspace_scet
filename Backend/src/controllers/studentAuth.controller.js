@@ -244,4 +244,109 @@ const updateGithubUsername = asyncHandler(async (req, res) => {
   );
 });
 
-export { loginStudent, verifyOtp, logoutStudent, getStudentDashboard, updateGithubUsername };
+const getResumeDraft = asyncHandler(async (req, res) => {
+  if (!req.student || !req.student.id) {
+    throw new ApiError(404, 'Student profile not found');
+  }
+
+  const { data: tokenDoc, error } = await supabase
+    .from('tokens')
+    .select('id, token, expiresAt')
+    .eq('userId', req.student.id)
+    .eq('userType', 'Student')
+    .eq('type', 'RESUME_DRAFT')
+    .order('id', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new ApiError(500, 'Failed to fetch resume draft: ' + error.message);
+  }
+
+  if (!tokenDoc || !tokenDoc.token) {
+    return res.status(200).json(
+      new ApiResponse(200, { resumeData: null, designSettings: null, updatedAt: null }, 'No cloud resume draft found')
+    );
+  }
+
+  try {
+    const parsed = JSON.parse(tokenDoc.token);
+    return res.status(200).json(
+      new ApiResponse(200, {
+        resumeData: parsed.resumeData || null,
+        designSettings: parsed.designSettings || null,
+        updatedAt: parsed.updatedAt || null,
+      }, 'Cloud resume draft retrieved successfully')
+    );
+  } catch (err) {
+    return res.status(200).json(
+      new ApiResponse(200, { resumeData: null, designSettings: null, updatedAt: null }, 'Corrupted cloud resume draft')
+    );
+  }
+});
+
+const saveResumeDraft = asyncHandler(async (req, res) => {
+  if (!req.student || !req.student.id) {
+    throw new ApiError(404, 'Student profile not found');
+  }
+
+  const { resumeData, designSettings } = req.body;
+
+  if (!resumeData) {
+    throw new ApiError(400, 'resumeData is required');
+  }
+
+  const updatedAt = new Date().toISOString();
+  const payload = JSON.stringify({
+    resumeData,
+    designSettings: designSettings || {},
+    updatedAt
+  });
+
+  const { data: existingToken, error: fetchError } = await supabase
+    .from('tokens')
+    .select('id')
+    .eq('userId', req.student.id)
+    .eq('userType', 'Student')
+    .eq('type', 'RESUME_DRAFT')
+    .limit(1)
+    .maybeSingle();
+
+  if (fetchError) {
+    throw new ApiError(500, 'Database error while checking existing draft: ' + fetchError.message);
+  }
+
+  if (existingToken) {
+    const { error: updateError } = await supabase
+      .from('tokens')
+      .update({
+        token: payload,
+        expiresAt: '2099-12-31T23:59:59.000Z'
+      })
+      .eq('id', existingToken.id);
+
+    if (updateError) {
+      throw new ApiError(500, 'Failed to update cloud resume draft: ' + updateError.message);
+    }
+  } else {
+    const { error: insertError } = await supabase
+      .from('tokens')
+      .insert([{
+        userId: req.student.id,
+        userType: 'Student',
+        type: 'RESUME_DRAFT',
+        token: payload,
+        expiresAt: '2099-12-31T23:59:59.000Z'
+      }]);
+
+    if (insertError) {
+      throw new ApiError(500, 'Failed to save cloud resume draft: ' + insertError.message);
+    }
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, { updatedAt }, 'Resume draft saved to cloud successfully')
+  );
+});
+
+export { loginStudent, verifyOtp, logoutStudent, getStudentDashboard, updateGithubUsername, getResumeDraft, saveResumeDraft };
