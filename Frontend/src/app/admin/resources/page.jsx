@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 
 import Link from 'next/link';
-import axios from "axios";
+import axiosInstance from "@/services/axiosInstance";
 import { Plus, Search, Edit, Trash2, Library, Loader2, ExternalLink } from "lucide-react";
 import { useConfirm, useAlert } from "@/context/ConfirmContext";
 
@@ -21,10 +21,10 @@ export default function ManageResources() {
   const fetchResources = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/v1/resources", {
-        withCredentials: true,
-      });
-      setResources(response.data.data || []);
+      setError("");
+      const response = await axiosInstance.get("/resources");
+      const data = response.data?.data || response.data || response;
+      setResources(Array.isArray(data) ? data : []);
     } catch (err) {
       setError("Failed to load resources. Please check your connection.");
       console.error(err);
@@ -42,9 +42,7 @@ export default function ManageResources() {
     });
     if (!isConfirmed) return;
     try {
-      await axios.delete(`/api/v1/resources/${id}`, {
-        withCredentials: true,
-      });
+      await axiosInstance.delete(`/resources/${id}`);
       setResources((prev) => prev.filter((r) => r.id !== id));
     } catch (err) {
       await showAlert({

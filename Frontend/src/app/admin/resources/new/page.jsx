@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 import React, { useState, useEffect } from "react";
 import {   useRouter, useParams,     } from 'next/navigation';
-import Link from 'next/link';;
-import axios from "axios";
+import Link from 'next/link';
+import axiosInstance from "@/services/axiosInstance";
 import { ArrowLeft, Save, Loader2, AlertCircle, UploadCloud } from "lucide-react";
 
 export default function CreateResource() {
@@ -38,23 +38,21 @@ export default function CreateResource() {
   const fetchResource = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`/api/v1/resources/${id}`, {
-        withCredentials: true,
-      });
-      const r = res.data.data;
+      const res = await axiosInstance.get(`/resources/${id}`);
+      const r = res.data?.data || res.data || res;
       setFormData({
-        title: r.title,
-        description: r.description,
-        category: r.category,
-        topic: r.topic,
-        type: r.type,
-        url: r.url,
-        difficulty: r.difficulty,
-        tags: r.tags ? r.tags.join(", ") : "",
+        title: r.title || "",
+        description: r.description || "",
+        category: r.category || "DSA",
+        topic: r.topic || "",
+        type: r.type || "Link",
+        url: r.url || "",
+        difficulty: r.difficulty || "Beginner",
+        tags: Array.isArray(r.tags) ? r.tags.join(", ") : (r.tags || ""),
         thumbnail_url: r.thumbnail_url || "",
         author: r.author || "",
-        is_featured: r.is_featured,
-        status: r.status,
+        is_featured: Boolean(r.is_featured),
+        status: r.status || "Draft",
       });
     } catch (err) {
       setError("Failed to fetch resource details.");
@@ -79,17 +77,17 @@ export default function CreateResource() {
     try {
       const payload = {
         ...formData,
-        tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
+        tags: formData.tags ? formData.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
       };
 
       if (isEditMode) {
-        await axios.put(`/api/v1/resources/${id}`, payload, { withCredentials: true });
+        await axiosInstance.put(`/resources/${id}`, payload);
       } else {
-        await axios.post("/api/v1/resources", payload, { withCredentials: true });
+        await axiosInstance.post("/resources", payload);
       }
       navigate.push("/admin/resources");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to save resource.");
+      setError(err.response?.data?.message || err.message || "Failed to save resource.");
     } finally {
       setSaving(false);
     }
