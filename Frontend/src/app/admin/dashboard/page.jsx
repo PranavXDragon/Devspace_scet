@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDashboardMetrics } from "@/context/adminDashboardSlice";
@@ -35,7 +35,7 @@ export default function Dashboard() {
           <QuickActions />
         </div>
         <div className="col-span-12 lg:col-span-8 space-y-6">
-          <MetricsGrid metrics={metrics} />
+          <MetricsGrid metrics={{ ...metrics, loading }} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <DatabaseAggregates metrics={metrics} />
             <RecentRegistrations metrics={metrics} recentLogs={recentLogs} />
