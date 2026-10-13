@@ -272,6 +272,22 @@ export const getAdminAttendanceRecords = asyncHandler(async (req, res) => {
                 } catch (e) {}
             }
 
+            const istTimeString = rec.created_at 
+                ? new Date(rec.created_at).toLocaleTimeString('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                  })
+                : new Date().toLocaleTimeString('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                  });
+
             return {
                 id: rec.id,
                 studentId: studentCode || rec.student_id,
@@ -279,7 +295,7 @@ export const getAdminAttendanceRecords = asyncHandler(async (req, res) => {
                 email: email || (rec.student_id?.includes('@') ? rec.student_id : 'student@scet.ac.in'),
                 date: rec.date,
                 status: rec.status || 'present',
-                time: rec.created_at ? new Date(rec.created_at).toLocaleTimeString() : new Date().toLocaleTimeString(),
+                time: istTimeString,
                 created_at: rec.created_at,
                 distance: rec.distance_from_class ? `${Math.round(rec.distance_from_class)}m` : '0m',
                 deviceFingerprint: rec.device_fingerprint || 'verified'

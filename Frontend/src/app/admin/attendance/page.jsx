@@ -111,18 +111,48 @@ export default function AdminAttendancePage() {
     );
   }, [records, searchQuery]);
 
+  // Format check-in timestamp to local Indian Standard Time (IST)
+  const formatCheckInTime = (record) => {
+    if (!record) return '--:--';
+    const raw = record.created_at || record.time;
+    if (!raw) return record.time || '--:--';
+    try {
+      const d = new Date(record.created_at || raw);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleTimeString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          hour: 'numeric',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        });
+      }
+    } catch (e) {}
+    return record.time || '--:--';
+  };
+
+  // Format distance cleanly (meters or km)
+  const formatDistance = (dist) => {
+    if (!dist && dist !== 0) return 'Campus GPS';
+    const raw = typeof dist === 'string' ? dist.replace(/[^\d.]/g, '') : dist;
+    const num = parseFloat(raw);
+    if (isNaN(num)) return 'Campus GPS';
+    if (num < 1000) return `${Math.round(num)}m`;
+    return `${(num / 1000).toFixed(1)} km`;
+  };
+
   // Export to CSV
   const handleExportCSV = () => {
     if (!records.length) return;
-    const headers = ['Student Name', 'Email', 'Student ID', 'Date', 'Time', 'Status', 'Distance'];
+    const headers = ['Student Name', 'Email', 'Student ID', 'Date', 'Time (IST)', 'Status', 'Distance'];
     const rows = records.map(r => [
       `"${r.name || 'Student'}"`,
       `"${r.email || ''}"`,
       `"${r.studentId || ''}"`,
       `"${r.date || ''}"`,
-      `"${r.time || ''}"`,
+      `"${formatCheckInTime(r)}"`,
       `"${r.status || 'present'}"`,
-      `"${r.distance || '0m'}"`
+      `"${formatDistance(r.distance)}"`
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
@@ -209,8 +239,9 @@ export default function AdminAttendancePage() {
           <div className="text-sm font-bold text-text truncate">
             {latestCheckIn ? latestCheckIn.name : 'Waiting...'}
           </div>
-          <p className="text-[11px] text-text-muted mt-1 font-mono truncate">
-            {latestCheckIn ? `${latestCheckIn.time}` : 'No check-ins yet'}
+          <p className="text-xs text-accent mt-1 font-mono font-semibold truncate flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-accent shrink-0" />
+            <span>{latestCheckIn ? formatCheckInTime(latestCheckIn) : 'No check-ins yet'}</span>
           </p>
         </div>
 
@@ -350,10 +381,10 @@ export default function AdminAttendancePage() {
                       <td className="py-3.5 px-4 font-mono text-text-muted text-xs">
                         {r.email}
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-text text-xs">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-text-muted" />
-                          <span>{r.time}</span>
+                      <td className="py-3.5 px-4 text-text text-xs whitespace-nowrap min-w-[130px]">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-bg border border-border rounded-lg font-mono font-semibold text-text shadow-sm">
+                          <Clock className="w-3.5 h-3.5 text-accent shrink-0" />
+                          <span className="tracking-tight">{formatCheckInTime(r)}</span>
                         </div>
                       </td>
                       <td className="py-3.5 px-4">
@@ -361,13 +392,13 @@ export default function AdminAttendancePage() {
                           <Check className="w-3 h-3" /> Present
                         </span>
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center gap-1 text-[10px] text-text-muted font-mono" title={`GPS Distance: ${r.distance || '0m'}`}>
-                            <MapPin className="w-3 h-3 text-emerald-400" /> {r.distance || 'Campus'}
+                          <span className="inline-flex items-center gap-1 text-[11px] text-text-muted font-mono" title={`GPS Distance: ${r.distance || '0m'}`}>
+                            <MapPin className="w-3 h-3 text-emerald-400 shrink-0" /> {formatDistance(r.distance)}
                           </span>
-                          <span className="inline-flex items-center gap-1 text-[10px] text-text-muted font-mono">
-                            <Smartphone className="w-3 h-3 text-accent" /> Device OK
+                          <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-mono font-semibold">
+                            <Smartphone className="w-3 h-3 text-accent shrink-0" /> Device OK
                           </span>
                         </div>
                       </td>
