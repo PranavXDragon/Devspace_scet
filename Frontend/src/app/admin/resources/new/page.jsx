@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import {   useRouter, useParams,     } from 'next/navigation';
 import Link from 'next/link';
 import axiosInstance from "@/services/axiosInstance";
-import { ArrowLeft, Save, Loader2, AlertCircle, UploadCloud } from "lucide-react";
+import { ArrowLeft, Save, Loader2, AlertCircle, UploadCloud, FileText, Check } from "lucide-react";
 
 export default function CreateResource() {
   const navigate = useRouter();
@@ -13,6 +13,8 @@ export default function CreateResource() {
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [fileUploading, setFileUploading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState("");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -28,6 +30,37 @@ export default function CreateResource() {
     is_featured: false,
     status: "Draft",
   });
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setFileUploading(true);
+      setError("");
+      const uploadData = new FormData();
+      uploadData.append("file", file);
+
+      const res = await axiosInstance.post("/resources/upload-file", uploadData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const uploadedUrl = res.data?.data?.url || res.data?.url || res.url;
+      if (uploadedUrl) {
+        setFormData((prev) => ({
+          ...prev,
+          url: uploadedUrl,
+          type: file.type === "application/pdf" || file.name.endsWith(".pdf") ? "PDF" : prev.type,
+          title: prev.title || file.name.replace(/\.[^/.]+$/, ""),
+        }));
+        setUploadedFileName(file.name);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to upload file.");
+    } finally {
+      setFileUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (isEditMode) {
@@ -142,8 +175,38 @@ export default function CreateResource() {
               />
             </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-text mb-1.5">Resource URL (Direct Link)</label>
+            <div className="md:col-span-2 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-semibold text-text">Resource Link / File</label>
+                <label className="inline-flex items-center gap-1.5 px-3 py-1 bg-accent/10 hover:bg-accent/20 text-accent rounded-lg text-xs font-semibold cursor-pointer transition-colors border border-accent/20">
+                  {fileUploading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Uploading PDF...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-3.5 h-3.5" />
+                      Upload PDF File
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.zip"
+                    onChange={handleFileUpload}
+                    disabled={fileUploading}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              {uploadedFileName && (
+                <div className="flex items-center gap-2 p-2.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-lg text-xs font-medium">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>PDF attached: <strong>{uploadedFileName}</strong></span>
+                </div>
+              )}
+
               <div className="relative">
                 <UploadCloud className="absolute left-3 top-2.5 w-4 h-4 text-text-text-muted" />
                 <input
@@ -152,11 +215,11 @@ export default function CreateResource() {
                   required
                   value={formData.url}
                   onChange={handleInputChange}
-                  className="w-full bg-bg border border-border rounded-lg pl-10 pr-4 py-2 text-text focus:outline-none focus:border-accent"
-                  placeholder="https://..."
+                  className="w-full bg-bg border border-border rounded-lg pl-10 pr-4 py-2 text-text focus:outline-none focus:border-accent text-sm"
+                  placeholder="https://... or upload a PDF above"
                 />
               </div>
-              <p className="text-xs text-text-text-muted mt-1">Provide a link to a Google Drive file, YouTube video, or external website.</p>
+              <p className="text-xs text-text-text-muted">Upload a PDF directly from your computer or paste an external link (Google Drive, YouTube, website).</p>
             </div>
 
             <div>

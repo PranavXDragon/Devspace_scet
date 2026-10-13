@@ -5,18 +5,21 @@ import {
     getResourceById, 
     createResource, 
     updateResource, 
-    deleteResource 
+    deleteResource,
+    uploadResourceFile
 } from '../controllers/resource.controller.js';
 import { verifyAdmin } from '../middlewares/adminAuth.middleware.js';
+import { upload } from '../middlewares/multer.middleware.js';
 
 const router = Router();
 
 // Public/Student routes
-// Optionally, you might want to protect this with a student auth middleware later
 router.route('/published').get(getPublishedResources);
 
 // All other resource management routes require Admin JWT
 router.use(verifyAdmin);
+
+router.route('/upload-file').post(upload.single('file'), uploadResourceFile);
 
 router.route('/')
     .get(getAllResources)

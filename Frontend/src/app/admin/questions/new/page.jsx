@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import {   useRouter, useParams,     } from 'next/navigation';
 import Link from 'next/link';
 import axiosInstance from "@/services/axiosInstance";
-import { ArrowLeft, Save, Plus, Trash2, Loader2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, Loader2, AlertCircle, FileText, Check } from "lucide-react";
 
 export default function CreateQuestion() {
   const navigate = useRouter();
@@ -13,6 +13,8 @@ export default function CreateQuestion() {
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [pdfUploading, setPdfUploading] = useState(false);
+  const [attachedPdfName, setAttachedPdfName] = useState("");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -25,6 +27,37 @@ export default function CreateQuestion() {
     constraints: "",
     tags: "",
   });
+
+  const handlePdfUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setPdfUploading(true);
+      setError("");
+      const uploadData = new FormData();
+      uploadData.append("file", file);
+
+      const res = await axiosInstance.post("/resources/upload-file", uploadData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const uploadedUrl = res.data?.data?.url || res.data?.url || res.url;
+      if (uploadedUrl) {
+        setFormData((prev) => ({
+          ...prev,
+          description: prev.description
+            ? `${prev.description}\n\n📄 **[View / Download Problem PDF](${uploadedUrl})**`
+            : `📄 **[View / Download Problem PDF](${uploadedUrl})**\n\n`,
+        }));
+        setAttachedPdfName(file.name);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to upload PDF attachment.");
+    } finally {
+      setPdfUploading(false);
+    }
+  };
 
   const [testCases, setTestCases] = useState([
     { input: "", expected_output: "", is_hidden: false }
@@ -221,7 +254,37 @@ export default function CreateQuestion() {
           <h2 className="text-lg font-bold text-text border-b border-border-soft pb-2">Problem Statement</h2>
           
           <div>
-            <label className="block text-sm font-semibold text-text mb-1.5">Description (Markdown supported)</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-semibold text-text">Description (Markdown supported)</label>
+              <label className="inline-flex items-center gap-1.5 px-3 py-1 bg-accent/10 hover:bg-accent/20 text-accent rounded-lg text-xs font-semibold cursor-pointer transition-colors border border-accent/20">
+                {pdfUploading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Uploading PDF...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="w-3.5 h-3.5" />
+                    Attach PDF / Document
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handlePdfUpload}
+                  disabled={pdfUploading}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {attachedPdfName && (
+              <div className="flex items-center gap-2 mb-2 p-2.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-lg text-xs font-medium">
+                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>PDF link inserted into description: <strong>{attachedPdfName}</strong></span>
+              </div>
+            )}
+
             <textarea
               name="description"
               required

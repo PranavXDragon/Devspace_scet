@@ -2,6 +2,7 @@ import { supabase } from '../config/supabase.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { uploadOnCloudinary } from '../utils/cloudinary.js';
 
 // Get all resources (Admin view - includes drafts)
 export const getAllResources = asyncHandler(async (req, res) => {
@@ -142,5 +143,26 @@ export const deleteResource = asyncHandler(async (req, res) => {
 
     return res.status(200).json(
         new ApiResponse(200, {}, "Resource deleted successfully")
+    );
+});
+
+// Upload resource file (PDF, Document, Zip)
+export const uploadResourceFile = asyncHandler(async (req, res) => {
+    if (!req.file) {
+        throw new ApiError(400, "No file provided for upload");
+    }
+
+    const uploadRes = await uploadOnCloudinary(req.file.path, 'devspace/resources');
+    if (!uploadRes?.secure_url) {
+        throw new ApiError(500, "Failed to upload file to cloud storage");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            url: uploadRes.secure_url,
+            originalName: req.file.originalname,
+            format: uploadRes.format || 'pdf',
+            bytes: uploadRes.bytes
+        }, "File uploaded successfully")
     );
 });
