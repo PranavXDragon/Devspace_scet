@@ -62,6 +62,19 @@ export default function Home() {
     csharp: 51,
     go: 95,         // Go 1.18.5
   };
+  const getInputHint = (sourceCode: string, lang: string) => {
+    const normLang = lang.toLowerCase().trim();
+    if (/cin\s*>>|scanf\s*\(|getline\s*\(/.test(sourceCode) || normLang === 'c++' || normLang === 'cpp' || normLang === 'c') {
+      return 'Your program reads standard input via cin / scanf. To test custom numbers or strings, type them in the "Input" panel and click Run.';
+    }
+    if (/input\s*\(|sys\.stdin/.test(sourceCode) || normLang === 'python') {
+      return 'Your program reads input via input(). To pass values to your code, type them in the "Input" panel and click Run.';
+    }
+    if (/Scanner\s+|BufferedReader\s+|System\.in/.test(sourceCode) || normLang === 'java') {
+      return 'Your program reads input via Scanner / System.in. To pass values, enter them in the "Input" panel and click Run.';
+    }
+    return 'Your program expects user input. Type your input values in the "Input" panel and click Run.';
+  };
 
   const handleRunCode = async () => {
     setOutput(['Executing code...']);
@@ -110,9 +123,9 @@ export default function Home() {
           if (stderr) lines.push(...stderr.split('\n').filter((l: string) => l.trim() !== '').map((l: string) => `Error: ${l}`));
           if (message) lines.push(`Note: ${message}`);
 
-          const hasInputOperation = /cin\s*>>|scanf\s*\(|input\s*\(|Scanner\s+|readline\s*\(/.test(code);
+          const hasInputOperation = /cin\s*>>|scanf\s*\(|getline\s*\(|input\s*\(|Scanner\s+|readline\s*\(|BufferedReader\s+|gets\s*\(|System\.in/i.test(code);
           if (!input?.trim() && hasInputOperation) {
-            lines.push('\n[💡 Tip: To pass values into cin >> i, type your number/text in the "Input" panel above and click Run]');
+            lines.push(`__IDE_TIP__:${getInputHint(code, language)}`);
           }
 
           setOutput(lines.length > 0 ? lines : ['Program executed successfully with no output.']);
@@ -148,9 +161,9 @@ export default function Home() {
         ...(result.error || []).filter((line: string) => line.trim() !== '').map((line: string) => `Error: ${line}`)
       ];
 
-      const hasInputOperation = /cin\s*>>|scanf\s*\(|input\s*\(|Scanner\s+|readline\s*\(/.test(code);
+      const hasInputOperation = /cin\s*>>|scanf\s*\(|getline\s*\(|input\s*\(|Scanner\s+|readline\s*\(|BufferedReader\s+|gets\s*\(|System\.in/i.test(code);
       if (!input?.trim() && hasInputOperation) {
-        combinedOutput.push('\n[💡 Tip: To pass values into cin >> i, type your number/text in the "Input" panel above and click Run]');
+        combinedOutput.push(`__IDE_TIP__:${getInputHint(code, language)}`);
       }
       
       setOutput(combinedOutput.length > 0 ? combinedOutput : ['Code executed successfully.']);
@@ -208,6 +221,10 @@ export default function Home() {
 
   const handleClearInput = () => {
     setInput("");
+  };
+
+  const handleClearOutput = () => {
+    setOutput([]);
   };
 
   const handleLanguageChange = (newLanguage: string) => {
@@ -286,6 +303,7 @@ export default function Home() {
           onInputChange={setInput}
           onClearInput={handleClearInput}
           output={output}
+          onClearOutput={handleClearOutput}
           activeTab={mobileTab}
           onActiveTabChange={setMobileTab}
         />
@@ -312,7 +330,7 @@ export default function Home() {
             />
           </div>
           <div className="flex-1">
-            <OutputConsole output={output} />
+            <OutputConsole output={output} onClearOutput={handleClearOutput} />
           </div>
         </div>
       </main>

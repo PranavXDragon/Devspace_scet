@@ -16,6 +16,7 @@ interface MobileTabsProps {
   onInputChange: (input: string) => void;
   onClearInput: () => void;
   output: string[];
+  onClearOutput?: () => void;
   activeTab?: string;
   onActiveTabChange?: (tab: string) => void;
 }
@@ -31,6 +32,7 @@ export default function MobileTabs({
   onInputChange,
   onClearInput,
   output,
+  onClearOutput,
   activeTab: controlledTab,
   onActiveTabChange,
 }: MobileTabsProps) {
@@ -76,7 +78,7 @@ export default function MobileTabs({
         </TabsContent>
         
         <TabsContent value="console" className="flex-1 mt-0">
-          <OutputConsole output={output} />
+          <OutputConsole output={output} onClearOutput={onClearOutput} />
         </TabsContent>
       </Tabs>
     </div>
