@@ -8,6 +8,24 @@ import { useTheme } from "@/hooks/useTheme";
 import { ASSETS } from "@/config/assets";
 import { UserButton, SignInButton, SignUpButton, useAuth } from '@clerk/nextjs';
 
+const userButtonAppearance = {
+  elements: {
+    userButtonAvatarBox: "w-10 h-10 border border-[#2EC5D4]/40 shadow-sm",
+    userButtonPopoverCard: "bg-[#0d1117] border border-[#2EC5D4]/30 text-white shadow-2xl rounded-2xl backdrop-blur-xl",
+    userButtonPopoverMain: "text-white",
+    userPreview: "text-white",
+    userPreviewAvatarContainer: "text-white",
+    userPreviewTextContainer: "text-white",
+    userPreviewMainIdentifier: "text-white font-bold text-sm tracking-wide",
+    userPreviewSecondaryIdentifier: "text-slate-300 font-mono text-xs",
+    userButtonPopoverActions: "border-t border-white/10 mt-1",
+    userButtonPopoverActionButton: "text-slate-200 hover:text-white hover:bg-[#2EC5D4]/15 transition-all py-2 px-3 rounded-xl",
+    userButtonPopoverActionButtonText: "text-slate-200 font-medium text-sm",
+    userButtonPopoverActionButtonIcon: "text-[#2EC5D4] w-4 h-4",
+    userButtonPopoverFooter: "border-t border-white/10 bg-[#090d13]/80"
+  }
+};
+
 const Navbar = ({ layout }) => {
   const { userId } = useAuth();
   const navigate = useRouter();
@@ -141,13 +159,7 @@ const Navbar = ({ layout }) => {
                 >
                   Dashboard
                 </Link>
-                <UserButton 
-                  appearance={{
-                    elements: {
-                      userButtonAvatarBox: "w-10 h-10"
-                    }
-                  }}
-                />
+                <UserButton appearance={userButtonAppearance} />
               </>
             )}
           </div>
@@ -268,13 +280,7 @@ const Navbar = ({ layout }) => {
                   Dashboard
                 </Link>
                 <div className="flex justify-center w-full">
-                  <UserButton 
-                    appearance={{
-                      elements: {
-                        userButtonAvatarBox: "w-11 h-11"
-                      }
-                    }}
-                  />
+                  <UserButton appearance={userButtonAppearance} />
                 </div>
               </div>
             )}
