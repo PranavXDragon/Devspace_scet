@@ -110,6 +110,11 @@ export default function Home() {
           if (stderr) lines.push(...stderr.split('\n').filter((l: string) => l.trim() !== '').map((l: string) => `Error: ${l}`));
           if (message) lines.push(`Note: ${message}`);
 
+          const hasInputOperation = /cin\s*>>|scanf\s*\(|input\s*\(|Scanner\s+|readline\s*\(/.test(code);
+          if (!input?.trim() && hasInputOperation) {
+            lines.push('\n[💡 Tip: To pass values into cin >> i, type your number/text in the "Input" panel above and click Run]');
+          }
+
           setOutput(lines.length > 0 ? lines : ['Program executed successfully with no output.']);
           return;
         }
@@ -142,6 +147,11 @@ export default function Home() {
         ...(result.output || []).filter((line: string) => line.trim() !== ''),
         ...(result.error || []).filter((line: string) => line.trim() !== '').map((line: string) => `Error: ${line}`)
       ];
+
+      const hasInputOperation = /cin\s*>>|scanf\s*\(|input\s*\(|Scanner\s+|readline\s*\(/.test(code);
+      if (!input?.trim() && hasInputOperation) {
+        combinedOutput.push('\n[💡 Tip: To pass values into cin >> i, type your number/text in the "Input" panel above and click Run]');
+      }
       
       setOutput(combinedOutput.length > 0 ? combinedOutput : ['Code executed successfully.']);
     } catch (error: any) {

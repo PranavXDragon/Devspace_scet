@@ -28,7 +28,7 @@ export default function InputPanel({ input, onInputChange, onClearInput }: Input
         <Textarea
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
-          placeholder="Enter input for your program here..."
+          placeholder="Type your program input here (e.g. for cin >> x or input())..."
           className="absolute inset-0 w-full h-full p-4 font-code text-base bg-transparent border-0 rounded-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
           aria-label="Program Input"
         />
