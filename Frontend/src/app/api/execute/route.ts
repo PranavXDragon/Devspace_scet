@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'child_process';
-import { writeFileSync, unlinkSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
@@ -10,11 +10,25 @@ interface ExecuteRequest {
   input?: string;
 }
 
-interface ExecuteResponse {
-  output: string[];
-  error: string[];
-  success: boolean;
-}
+// Judge0 Language IDs for Sandboxed Cloud Execution
+const JUDGE0_LANGUAGE_IDS: Record<string, number> = {
+  javascript: 93, // Node.js 18.15.0
+  typescript: 94, // TypeScript 5.0.3
+  python: 71,     // Python 3.8.1
+  java: 91,       // Java JDK 17.0.6
+  c: 103,         // C GCC 14.1.0
+  'c++': 54,      // C++ GCC 9.2.0
+  cpp: 54,
+  rust: 73,       // Rust 1.40.0
+  php: 98,        // PHP 8.3.11
+  ruby: 72,       // Ruby 2.7.0
+  kotlin: 78,     // Kotlin 1.3.70
+  r: 99,          // R 4.4.1
+  bash: 46,       // Bash 5.0.0
+  'c#': 51,       // C# Mono 6.6.0
+  csharp: 51,
+  go: 95,         // Go 1.18.5
+};
 
 interface LanguageConfig {
   extension: string;
@@ -26,7 +40,7 @@ interface LanguageConfig {
   needsProject?: boolean;
 }
 
-// Language configurations
+// Local fallback configurations
 const languageConfigs: Record<string, LanguageConfig> = {
   javascript: {
     extension: '.js',
@@ -40,7 +54,7 @@ const languageConfigs: Record<string, LanguageConfig> = {
   },
   python: {
     extension: '.py',
-    command: 'python3',
+    command: process.platform === 'win32' ? 'python' : 'python3',
     args: (filePath: string) => [filePath],
   },
   java: {
@@ -107,13 +121,12 @@ function executeCommand(command: string, args: string[], cwd?: string, input?: s
     const process = spawn(command, args, { 
       cwd,
       shell: true,
-      timeout: 30000, // 30 second timeout
+      timeout: 15000,
     });
     
     let stdout = '';
     let stderr = '';
     
-    // Send input to the process if provided
     if (input && process.stdin) {
       process.stdin.write(input);
       process.stdin.end();
@@ -132,11 +145,10 @@ function executeCommand(command: string, args: string[], cwd?: string, input?: s
     });
     
     process.on('error', (error) => {
-      // Handle command not found errors gracefully
       if (error.message.includes('ENOENT')) {
         resolve({ 
           stdout, 
-          stderr: `Error: Command '${command}' not found. This language runtime may not be installed on the server.\nAvailable commands: node, python3, java, gcc, g++, php, ruby, tsx, go, rustc, kotlinc, dotnet, bash, Rscript`, 
+          stderr: `Error: Command '${command}' not found on server runtime.`, 
           exitCode: 127 
         });
       } else {
@@ -157,7 +169,59 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const config = languageConfigs[language as keyof typeof languageConfigs];
+    const normLang = language.toLowerCase().trim();
+
+    // 1. Primary: Judge0 Sandboxed Cloud Execution
+    const judge0Id = JUDGE0_LANGUAGE_IDS[normLang];
+    if (judge0Id) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+        const judgeRes = await fetch('https://ce.judge0.com/submissions?wait=true', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            source_code: code,
+            language_id: judge0Id,
+            stdin: input || '',
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (judgeRes.ok) {
+          const data = await judgeRes.json();
+          
+          const rawStdout = data.stdout || '';
+          const rawStderr = data.stderr || '';
+          const compileOutput = data.compile_output || '';
+          const message = data.message || '';
+
+          const outputLines = rawStdout.split('\n').filter((l: string) => l.trim() !== '');
+          const errorLines = [
+            ...compileOutput.split('\n'),
+            ...rawStderr.split('\n'),
+            ...message.split('\n')
+          ].filter((l: string) => l.trim() !== '');
+
+          const isSuccess = data.status?.id === 3; // 3 = Accepted
+
+          return NextResponse.json({
+            output: outputLines,
+            error: errorLines,
+            success: isSuccess
+          });
+        }
+      } catch (judgeErr) {
+        console.warn('Judge0 execution fallback to local executor:', judgeErr);
+      }
+    }
+
+    // 2. Secondary: Local System Execution Fallback
+    const config = languageConfigs[normLang];
     if (!config) {
       return NextResponse.json(
         { error: [`Language '${language}' is not supported`], output: [], success: false },
@@ -165,100 +229,32 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Create temporary directory
-    const tempDir = join(tmpdir(), `codepad_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+    const tempDir = join(tmpdir(), `codepad_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`);
     mkdirSync(tempDir, { recursive: true });
     
     try {
       const fileName = `main${config.extension}`;
       const filePath = join(tempDir, fileName);
+      writeFileSync(filePath, code);
       
-      // Handle C# project setup
-      if (config.needsProject && language === 'c#') {
-        // Create a simple console project
-        const projectResult = await executeCommand('dotnet', ['new', 'console', '--force'], tempDir);
-        if (projectResult.exitCode !== 0) {
+      let result: { stdout: string; stderr: string; exitCode: number };
+      
+      if (config.needsCompilation) {
+        const outputPath = join(tempDir, process.platform === 'win32' ? 'main.exe' : 'main');
+        const compileArgs = config.args(filePath, outputPath);
+        result = await executeCommand(config.command, compileArgs, tempDir);
+        
+        if (result.exitCode !== 0) {
           return NextResponse.json({
-            error: ['Failed to create C# project: ' + projectResult.stderr],
+            error: result.stderr.split('\n').filter(line => line.trim()),
             output: [],
             success: false
           });
         }
         
-        // Write the code to Program.cs
-        writeFileSync(join(tempDir, 'Program.cs'), code);
+        const runCmd = typeof config.runCommand === 'function' ? config.runCommand(outputPath) : (config.runCommand || outputPath);
+        result = await executeCommand(runCmd, [], tempDir, input);
       } else {
-        // Write code to file
-        writeFileSync(filePath, code);
-      }
-      
-      let result: { stdout: string; stderr: string; exitCode: number };
-      
-      if (config.needsCompilation) {
-        // Compilation step
-        let outputPath: string;
-        let compileArgs: string[];
-        
-        if (language === 'java') {
-          // Extract class name from code for Java
-          const classNameMatch = code.match(/public\s+class\s+(\w+)/);
-          const className = classNameMatch ? classNameMatch[1] : 'Main';
-          const javaFileName = `${className}.java`;
-          const javaFilePath = join(tempDir, javaFileName);
-          
-          // Write Java code with correct filename
-          writeFileSync(javaFilePath, code);
-          
-          // Java compilation
-          compileArgs = config.args(javaFilePath);
-          result = await executeCommand(config.command, compileArgs, tempDir);
-          
-          if (result.exitCode !== 0) {
-            return NextResponse.json({
-              error: result.stderr.split('\n').filter(line => line.trim()),
-              output: [],
-              success: false
-            });
-          }
-          
-          // Run Java
-          result = await executeCommand(config.runCommand as string, config.runArgs!(className), tempDir, input);
-        } else if (language === 'kotlin') {
-          // Kotlin compilation
-          outputPath = join(tempDir, 'main.jar');
-          compileArgs = config.args(filePath, outputPath);
-          result = await executeCommand(config.command, compileArgs, tempDir);
-          
-          if (result.exitCode !== 0) {
-            return NextResponse.json({
-              error: result.stderr.split('\n').filter(line => line.trim()),
-              output: [],
-              success: false
-            });
-          }
-          
-          // Run Kotlin
-          result = await executeCommand(config.runCommand as string, config.runArgs!(outputPath), tempDir, input);
-        } else {
-          // C/C++/Rust compilation
-          outputPath = join(tempDir, 'main');
-          compileArgs = config.args(filePath, outputPath);
-          result = await executeCommand(config.command, compileArgs, tempDir);
-          
-          if (result.exitCode !== 0) {
-            return NextResponse.json({
-              error: result.stderr.split('\n').filter(line => line.trim()),
-              output: [],
-              success: false
-            });
-          }
-          
-          // Run compiled binary
-          const runCmd = typeof config.runCommand === 'function' ? config.runCommand(outputPath) : config.runCommand!;
-          result = await executeCommand(runCmd, [], tempDir, input);
-        }
-      } else {
-        // Direct execution
         const args = config.args(filePath);
         result = await executeCommand(config.command, args, tempDir, input);
       }
@@ -273,20 +269,18 @@ export async function POST(request: NextRequest) {
       });
       
     } finally {
-      // Cleanup temporary files
       try {
-        const { execSync } = require('child_process');
-        execSync(`rm -rf "${tempDir}"`, { timeout: 5000 });
-      } catch (cleanupError) {
-        console.error('Failed to cleanup temp directory:', cleanupError);
-      }
+        if (existsSync(tempDir)) {
+          rmSync(tempDir, { recursive: true, force: true });
+        }
+      } catch (cleanupError) {}
     }
     
   } catch (error) {
     console.error('Execution error:', error);
     return NextResponse.json(
       { 
-        error: ['Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error')], 
+        error: ['Internal execution error: ' + (error instanceof Error ? error.message : 'Unknown error')], 
         output: [], 
         success: false 
       },
@@ -294,3 +288,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
