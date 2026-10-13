@@ -1,9 +1,10 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Scan, RefreshCw, Copy, Check, Globe, Code2, Users, 
   Search, Download, Calendar, MapPin, Smartphone, 
-  CheckCircle, ArrowUpRight, ShieldCheck, Clock, Filter
+  CheckCircle, ArrowUpRight, ShieldCheck, Clock, Filter,
+  ChevronDown
 } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { QRCodeSVG } from 'qrcode.react';
@@ -22,6 +23,22 @@ export default function AdminAttendancePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const dateInputRef = useRef(null);
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+
+  const handleOpenDatePicker = () => {
+    if (dateInputRef.current) {
+      try {
+        if (typeof dateInputRef.current.showPicker === 'function') {
+          dateInputRef.current.showPicker();
+        } else {
+          dateInputRef.current.focus();
+        }
+      } catch (e) {
+        dateInputRef.current.focus();
+      }
+    }
+  };
 
   // 1. Fetch QR Code
   const generateNewQR = async () => {
@@ -47,7 +64,7 @@ export default function AdminAttendancePage() {
   const fetchAttendanceRecords = async () => {
     setRecordsLoading(true);
     try {
-      const dateParam = selectedDate ? `?date=${selectedDate}` : '';
+      const dateParam = selectedDate ? `?date=${selectedDate}` : '?date=all';
       const res = await axiosInstance.get(`/attendance/records${dateParam}`);
       const list = res.data?.data || res.data || [];
       setRecords(Array.isArray(list) ? list : []);
@@ -289,15 +306,55 @@ export default function AdminAttendancePage() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Date Filter */}
-              <div className="flex items-center gap-1.5 bg-bg border border-border px-3 py-1.5 rounded-xl text-xs">
-                <Calendar className="w-3.5 h-3.5 text-text-muted" />
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="bg-transparent text-text font-mono focus:outline-none cursor-pointer text-xs"
-                />
+              {/* Clickable Date Picker & Quick Selectors */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <div 
+                  onClick={handleOpenDatePicker}
+                  className="flex items-center gap-2 bg-bg hover:bg-card-hover border border-border hover:border-accent/60 px-3 py-1.5 rounded-xl text-xs font-semibold text-text transition-all cursor-pointer select-none group shadow-sm relative overflow-hidden"
+                  title="Click anywhere to change date"
+                >
+                  <Calendar className="w-3.5 h-3.5 text-accent shrink-0" />
+                  <span className="font-mono text-text font-bold">
+                    {selectedDate 
+                      ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                      : 'All History'}
+                  </span>
+                  <ChevronDown className="w-3.5 h-3.5 text-text-muted group-hover:text-accent transition-colors shrink-0" />
+
+                  {/* Transparent overlay input so clicking anywhere triggers native picker */}
+                  <input
+                    ref={dateInputRef}
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    style={{ colorScheme: 'dark' }}
+                  />
+                </div>
+
+                {/* Quick "Today" jump button */}
+                {selectedDate !== todayStr && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDate(todayStr)}
+                    className="px-2.5 py-1.5 bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent rounded-xl text-[11px] font-bold transition-all cursor-pointer"
+                  >
+                    Today
+                  </button>
+                )}
+
+                {/* Quick "All Dates" toggle */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedDate(selectedDate ? '' : todayStr)}
+                  className={`px-2.5 py-1.5 border rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                    !selectedDate 
+                      ? 'bg-accent text-[#0b0f17] border-accent shadow-sm' 
+                      : 'bg-bg hover:bg-card-hover border-border text-text-muted'
+                  }`}
+                >
+                  {!selectedDate ? 'Showing All' : 'All Dates'}
+                </button>
               </div>
 
               {/* Refresh Button */}
