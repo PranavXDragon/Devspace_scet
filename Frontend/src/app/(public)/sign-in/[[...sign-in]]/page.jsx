@@ -6,7 +6,7 @@ import { ArrowLeft, Shield } from 'lucide-react';
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen bg-[#070a10] text-[#f0f6fc] relative flex flex-col justify-center items-center px-4 py-12 overflow-hidden">
+    <div className="min-h-screen bg-[#070a10] text-[#f0f6fc] relative flex flex-col justify-center items-center px-4 py-8 sm:py-12 overflow-x-hidden">
       {/* Cyber Grid Background */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-[0.035] z-0"

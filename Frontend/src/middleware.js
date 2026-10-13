@@ -1,9 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-// Routes that MUST remain public and never redirect to Clerk login wall
+// Only public routes that do NOT require authentication
 const isPublicRoute = createRouteMatcher([
   '/',
-  '/student/attendance(.*)',
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/events(.*)',
@@ -12,11 +12,20 @@ const isPublicRoute = createRouteMatcher([
   '/api/(.*)',
 ]);
 
+const isStudentRoute = createRouteMatcher([
+  '/student(.*)',
+]);
+
 export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req) && req.nextUrl.pathname.startsWith('/student')) {
-    await auth.protect({
-      unauthenticatedUrl: new URL('/sign-in', req.url).toString(),
-    });
+  if (isStudentRoute(req) && !isPublicRoute(req)) {
+    const { userId } = await auth();
+    if (!userId) {
+      // Force direct in-app redirect to prevent mobile browsers hanging on *.accounts.dev
+      const signInUrl = new URL('/sign-in', req.url);
+      const returnTarget = req.nextUrl.pathname + req.nextUrl.search;
+      signInUrl.searchParams.set('redirect_url', returnTarget);
+      return NextResponse.redirect(signInUrl);
+    }
   }
 });
 

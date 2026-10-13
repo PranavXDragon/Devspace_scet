@@ -18,7 +18,13 @@ import { clerkAppearance } from '@/config/clerkTheme';
 
 export default function RootLayout({ children }) {
   return (
-    <ClerkProvider appearance={clerkAppearance}>
+    <ClerkProvider 
+      appearance={clerkAppearance}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/student/dashboard"
+      signUpFallbackRedirectUrl="/student/dashboard"
+    >
       <html lang="en" className="dark" suppressHydrationWarning>
         <body className={`${jetbrains.variable} ${oswald.variable} ${playfair.variable}`}>
           <AppProvider>

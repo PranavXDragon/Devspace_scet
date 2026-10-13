@@ -283,7 +283,7 @@ export default function StudentLayout({ children }) {
             </div>
             <div className="flex-1 overflow-hidden">
                 <p className="text-sm font-medium text-text truncate">{dashboardData.profile?.name || user?.fullName}</p>
-                <p className="text-xs text-text-text-muted truncate">{dashboardData.profile?.studentId || user?.primaryEmailAddress?.emailAddress}</p>
+                <p className="text-xs text-text-muted truncate">{dashboardData.profile?.studentId || user?.primaryEmailAddress?.emailAddress}</p>
             </div>
         </div>
 
@@ -419,7 +419,7 @@ export default function StudentLayout({ children }) {
         <div className="p-4 border-t border-border-soft">
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-text-text-muted rounded-lg transition-colors hover:bg-danger/10 hover:text-danger"
+            className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-text-muted rounded-lg transition-colors hover:bg-danger/10 hover:text-danger"
           >
             <LogOut className="w-5 h-5" />
             Log Out
@@ -434,7 +434,7 @@ export default function StudentLayout({ children }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 -ml-2 text-text-text-muted hover:bg-card-hover rounded-lg"
+              className="p-2 -ml-2 text-text-muted hover:bg-card-hover rounded-lg"
             >
               <Menu className="w-6 h-6" />
             </button>
@@ -458,7 +458,13 @@ export default function StudentLayout({ children }) {
     </div>
       )}
       {!userId && (
-        (() => { if (typeof window !== 'undefined') window.location.href = '/register'; return null; })()
+        (() => { 
+          if (typeof window !== 'undefined') {
+            const returnUrl = window.location.pathname + window.location.search;
+            window.location.href = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
+          }
+          return null; 
+        })()
       )}
     </>
   );

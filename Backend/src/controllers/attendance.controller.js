@@ -44,7 +44,7 @@ export const generateQR = asyncHandler(async (req, res) => {
 });
 
 export const markAttendance = asyncHandler(async (req, res) => {
-    const { qrData, location, deviceFingerprint, studentIdentifier } = req.body;
+    const { qrData, location, deviceFingerprint, studentIdentifier, studentName: clientStudentName } = req.body;
 
     if (!qrData || !qrData.sessionId || !qrData.timestamp || !qrData.hash) {
         throw new ApiError(400, "Invalid QR code data");
@@ -63,11 +63,15 @@ export const markAttendance = asyncHandler(async (req, res) => {
         throw new ApiError(400, "QR code has expired. Please ask the instructor to regenerate.");
     }
 
-    // Identify Student
+    // Identify Student - Authentication is strictly required
     let studentId = req.student?.id;
-    let studentName = req.student?.name || 'Student';
+    let studentName = req.student?.name || clientStudentName || 'Student';
     let studentEmail = req.userEmail || (typeof studentIdentifier === 'string' && studentIdentifier.includes('@') ? studentIdentifier.trim() : null);
     let studentCode = typeof studentIdentifier === 'string' && !studentIdentifier.includes('@') ? studentIdentifier.trim() : null;
+
+    if (!studentId && !studentEmail && !studentCode && !req.clerkUserId) {
+        throw new ApiError(401, "Sign-in required: You must be logged into your DevSpace student account to mark attendance.");
+    }
 
     if (!studentId && (studentEmail || studentCode)) {
         try {
@@ -81,16 +85,20 @@ export const markAttendance = asyncHandler(async (req, res) => {
                 studentName = found.name;
             } else {
                 studentId = studentCode || studentEmail;
-                studentName = studentCode || studentEmail;
+                if (!studentName || studentName === 'Student') {
+                    studentName = clientStudentName || studentCode || studentEmail;
+                }
             }
         } catch (lookupErr) {
             studentId = studentCode || studentEmail;
-            studentName = studentCode || studentEmail;
+            if (!studentName || studentName === 'Student') {
+                studentName = clientStudentName || studentCode || studentEmail;
+            }
         }
     }
 
     if (!studentId) {
-        studentId = req.clerkUserId || 'attendee-' + (deviceFingerprint || Date.now());
+        studentId = req.clerkUserId;
     }
 
     // 3. Verify Geolocation (flexible/configurable)

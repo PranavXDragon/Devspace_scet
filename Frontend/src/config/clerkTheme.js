@@ -26,7 +26,7 @@ export const clerkAppearance = {
   },
   elements: {
     rootBox: 'flex justify-center items-center w-full',
-    card: 'bg-[#0d1117] border border-[#2EC5D4]/25 shadow-[0_0_50px_rgba(46,197,212,0.15)] rounded-2xl p-6 sm:p-8',
+    card: 'bg-[#0d1117] border border-[#2EC5D4]/25 shadow-[0_0_50px_rgba(46,197,212,0.15)] rounded-2xl p-4 sm:p-8 w-full max-w-full',
     cardBox: 'shadow-none',
     headerTitle: 'font-sans text-2xl font-bold tracking-wider uppercase text-white',
     headerSubtitle: 'text-slate-400 text-sm font-sans',

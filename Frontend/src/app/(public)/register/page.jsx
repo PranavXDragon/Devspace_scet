@@ -105,7 +105,7 @@ const Register = () => {
     </div>
       )}
       {!userId && (
-        <RedirectToSignIn />
+        <RedirectToSignIn signInUrl="/sign-in" />
       )}
     </>
   );
