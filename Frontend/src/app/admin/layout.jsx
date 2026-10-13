@@ -23,7 +23,8 @@ import {
 import axios from "axios";
 
 import { useDispatch, useSelector } from "react-redux";
-import { setLogout } from "@/context/authSlice";
+import { setLogin, setLogout } from "@/context/authSlice";
+import { adminService } from "@/services/adminService";
 
 export default function DashboardLayout({ children }) {
   const navigate = useRouter();
@@ -33,10 +34,27 @@ export default function DashboardLayout({ children }) {
 
   const { user, isAuthResolved } = useSelector((state) => state.auth);
 
+  // Rehydrate session from /api/v1/admin/current on mount/refresh
+  useEffect(() => {
+    if (!isAuthResolved) {
+      adminService
+        .getCurrentAdmin()
+        .then((res) => {
+          const adminData = res.data?.data || res.data || res;
+          dispatch(setLogin(adminData));
+        })
+        .catch(() => {
+          dispatch(setLogout());
+        });
+    }
+  }, [dispatch, isAuthResolved]);
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (isAuthResolved && !user && location !== "/admin/login") {
       navigate.push("/admin/login");
+    } else if (isAuthResolved && user && location === "/admin/login") {
+      navigate.push("/admin/dashboard");
     }
   }, [user, isAuthResolved, location, navigate]);
 
@@ -47,6 +65,22 @@ export default function DashboardLayout({ children }) {
 
   if (location === "/admin/login") {
     return <>{children}</>;
+  }
+
+  // Show sleek loading screen until session is resolved
+  if (!isAuthResolved) {
+    return (
+      <div className="flex min-h-screen bg-bg items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <img src="/logo.png" alt="Devspace" className="h-12 w-auto animate-pulse" />
+          <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
   }
 
   const navItems = [
@@ -72,10 +106,13 @@ export default function DashboardLayout({ children }) {
 
   const handleLogout = async () => {
     try {
-      await axios.post("/api/v1/admin/logout", {}, { withCredentials: true });
+      await adminService.logoutAdmin();
     } catch (error) {
       console.error("Backend logout failed or session already cleared:", error);
     } finally {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("admin_token");
+      }
       dispatch(setLogout());
       navigate.push("/admin/login");
     }

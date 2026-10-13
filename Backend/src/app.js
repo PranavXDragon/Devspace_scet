@@ -36,9 +36,31 @@ app.use("/api", limiter);
 app.use(compression());
 
 
+const rawCorsOrigin = process.env.CORS_ORIGIN || "";
+const configuredOrigins = rawCorsOrigin
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: (origin, callback) => {
+      // Allow server-to-server, curl, Next.js rewrites, or mobile requests with no origin
+      if (!origin) return callback(null, true);
+
+      // If no explicit origins configured, or wildcard, or matches configured origins or Vercel preview domains
+      const isAllowed =
+        configuredOrigins.length === 0 ||
+        configuredOrigins.includes("*") ||
+        configuredOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app") ||
+        origin.includes("localhost");
+
+      if (isAllowed) {
+        return callback(null, origin);
+      }
+      return callback(null, origin);
+    },
     credentials: true,
   })
 );

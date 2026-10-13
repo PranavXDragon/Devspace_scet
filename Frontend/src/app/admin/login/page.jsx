@@ -70,6 +70,10 @@ export default function AdminLogin() {
 
     try {
       const response = await adminService.verifyAdminOtp(userEmail, data.otp);
+      const token = response.data?.token || response.token;
+      if (token && typeof window !== "undefined") {
+        localStorage.setItem("admin_token", token);
+      }
       dispatch(setLogin(response.data || response));
       navigate.push("/admin/dashboard");
     } catch (err) {

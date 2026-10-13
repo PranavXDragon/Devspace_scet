@@ -9,12 +9,24 @@ export const updateProfile = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, {}, 'Profile update should be handled via Clerk dashboard'));
 });
 
-import { getAuth } from '@clerk/express';
-
 export const getCurrentAdmin = asyncHandler(async (req, res) => {
-  const auth = getAuth(req);
+  const email = req.admin?.email;
+  if (!email) {
+    throw new ApiError(401, 'Unauthorized admin access');
+  }
+
+  const { data: admin } = await supabase
+    .from('admins')
+    .select('id, name, email')
+    .eq('email', email)
+    .single();
+
   return res.status(200).json(
-    new ApiResponse(200, { id: auth.userId }, 'Current admin fetched successfully')
+    new ApiResponse(
+      200,
+      admin || { email: req.admin.email, name: 'Admin', role: 'Admin' },
+      'Current admin fetched successfully'
+    )
   );
 });
 

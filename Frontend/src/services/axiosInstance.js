@@ -20,12 +20,9 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use(async (config) => {
-  console.log("Axios Request:", config.url);
-  console.log("getTokenFn exists?", !!getTokenFn);
   if (getTokenFn) {
     try {
       const token = await getTokenFn();
-      console.log("Retrieved token length:", token ? token.length : 0);
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -33,6 +30,15 @@ axiosInstance.interceptors.request.use(async (config) => {
       console.error("Failed to get clerk token:", e);
     }
   }
+
+  // Fallback for Admin portal token if no Clerk token is attached
+  if (!config.headers.Authorization && typeof window !== "undefined") {
+    const adminToken = localStorage.getItem("admin_token");
+    if (adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
+    }
+  }
+
   return config;
 });
 axiosInstance.interceptors.response.use(
@@ -60,6 +66,7 @@ axiosInstance.interceptors.response.use(
           typeof window !== "undefined" && window.location.pathname.startsWith("/admin") &&
           window.location.pathname !== "/admin/login"
         ) {
+          localStorage.removeItem("admin_token");
           store.dispatch(setLogout());
         }
       }
