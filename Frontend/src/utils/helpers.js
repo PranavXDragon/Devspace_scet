@@ -5,7 +5,7 @@ export const generateAcademicYears = () => {
   const currentMonth = new Date().getMonth();
   const maxYear = currentMonth >= 5 ? currentYear : currentYear - 1;
   const years = [];
-  for (let startYear = 2026; startYear <= maxYear; startYear++) {
+  for (let startYear = 2024; startYear <= Math.max(maxYear, 2026); startYear++) {
     years.push(`${startYear}-${startYear + 1}`);
   }
   return years.reverse();
