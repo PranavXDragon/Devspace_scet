@@ -14,7 +14,12 @@ export default function AdminAttendancePage() {
     setError(null);
     try {
       const res = await axiosInstance.get('/attendance/generate-qr');
-      setQrData(res.data.data); // Should contain sessionId, timestamp, hash
+      const payload = res.data?.data || res.data || res;
+      if (payload && payload.sessionId) {
+        setQrData(payload);
+      } else {
+        setError('Invalid QR payload received.');
+      }
     } catch (err) {
       console.error(err);
       setError('Failed to generate QR code.');

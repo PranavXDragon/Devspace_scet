@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 
 import Link from 'next/link';
-import axios from "axios";
+import axiosInstance from "@/services/axiosInstance";
 import { Plus, Search, Edit, Trash2, Code, Loader2 } from "lucide-react";
 import { useConfirm } from "@/context/ConfirmContext";
 
@@ -20,10 +20,10 @@ export default function QuestionBank() {
   const fetchQuestions = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/v1/admin/questions", {
-        withCredentials: true,
-      });
-      setQuestions(response.data.data || []);
+      setError("");
+      const response = await axiosInstance.get("/admin/questions");
+      const data = response.data?.data || response.data || response;
+      setQuestions(Array.isArray(data) ? data : []);
     } catch (err) {
       setError("Failed to load questions. Please check your connection.");
       console.error(err);
@@ -41,9 +41,7 @@ export default function QuestionBank() {
     });
     if (!isConfirmed) return;
     try {
-      await axios.delete(`/api/v1/admin/questions/${id}`, {
-        withCredentials: true,
-      });
+      await axiosInstance.delete(`/admin/questions/${id}`);
       setQuestions((prev) => prev.filter((q) => q.id !== id));
     } catch (err) {
       alert("Failed to delete question.");

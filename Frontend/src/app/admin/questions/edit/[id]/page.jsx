@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 import React, { useState, useEffect } from "react";
 import {   useRouter, useParams,     } from 'next/navigation';
-import Link from 'next/link';;
-import axios from "axios";
+import Link from 'next/link';
+import axiosInstance from "@/services/axiosInstance";
 import { ArrowLeft, Save, Plus, Trash2, Loader2, AlertCircle } from "lucide-react";
 
 export default function CreateQuestion() {
@@ -39,20 +39,18 @@ export default function CreateQuestion() {
   const fetchQuestion = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`/api/v1/admin/questions/${id}`, {
-        withCredentials: true,
-      });
-      const q = res.data.data;
+      const res = await axiosInstance.get(`/admin/questions/${id}`);
+      const q = res.data?.data || res.data || res;
       setFormData({
-        title: q.title,
-        topic: q.topic,
-        difficulty: q.difficulty,
-        status: q.status,
-        time_limit_ms: q.time_limit_ms,
-        memory_limit_kb: q.memory_limit_kb,
-        description: q.description,
-        constraints: q.constraints,
-        tags: q.tags.join(", "),
+        title: q.title || "",
+        topic: q.topic || "",
+        difficulty: q.difficulty || "Medium",
+        status: q.status || "Draft",
+        time_limit_ms: q.time_limit_ms || 2000,
+        memory_limit_kb: q.memory_limit_kb || 256000,
+        description: q.description || "",
+        constraints: q.constraints || "",
+        tags: Array.isArray(q.tags) ? q.tags.join(", ") : (q.tags || ""),
       });
       if (q.testCases && q.testCases.length > 0) {
         setTestCases(q.testCases);
@@ -91,20 +89,20 @@ export default function CreateQuestion() {
     try {
       const payload = {
         ...formData,
-        time_limit_ms: parseInt(formData.time_limit_ms),
-        memory_limit_kb: parseInt(formData.memory_limit_kb),
-        tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
+        time_limit_ms: parseInt(formData.time_limit_ms) || 2000,
+        memory_limit_kb: parseInt(formData.memory_limit_kb) || 256000,
+        tags: formData.tags ? formData.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
         testCases,
       };
 
       if (isEditMode) {
-        await axios.put(`/api/v1/admin/questions/${id}`, payload, { withCredentials: true });
+        await axiosInstance.put(`/admin/questions/${id}`, payload);
       } else {
-        await axios.post("/api/v1/admin/questions", payload, { withCredentials: true });
+        await axiosInstance.post("/admin/questions", payload);
       }
       navigate.push("/admin/questions");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to save question.");
+      setError(err.response?.data?.message || err.message || "Failed to save question.");
     } finally {
       setSaving(false);
     }
