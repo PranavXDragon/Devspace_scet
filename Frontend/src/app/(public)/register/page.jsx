@@ -16,7 +16,6 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const dispatch = useDispatch();
-  const [turnstileToken, setTurnstileToken] = useState(null);
   const { register } = contentData;
   const { user } = useUser();
 
@@ -44,19 +43,8 @@ const Register = () => {
   const onFormSubmit = async (data) => {
     setLoading(true);
 
-    if (!turnstileToken) {
-      dispatch(setError("Please complete the security check."));
-      setLoading(false);
-      return;
-    }
-
     try {
-      const payload = {
-        ...data,
-        turnstileToken,
-      };
-
-      await registrationService.registerStudent(payload);
+      await registrationService.registerStudent(data);
       setIsSuccess(true);
     } catch (err) {
       if (err.response?.data?.errors?.length > 0) {
@@ -65,7 +53,6 @@ const Register = () => {
             setFormError(e.field, { type: "server", message: e.message });
         });
       }
-      setTurnstileToken(null);
     } finally {
       setLoading(false);
     }
@@ -111,9 +98,7 @@ const Register = () => {
           <VerificationDetailsForm
             register={formRegister}
             errors={errors}
-            setTurnstileToken={setTurnstileToken}
             loading={loading}
-            turnstileToken={turnstileToken}
           />
         </form>
       </div>

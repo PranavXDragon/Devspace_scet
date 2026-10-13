@@ -2,8 +2,6 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
-import { setError } from "@/context/messageSlice";
-import { Turnstile } from "@marsidev/react-turnstile";
 import axiosInstance from "@/services/axiosInstance";
 import contentData from "@/data/content.json";
 import {
@@ -23,7 +21,6 @@ const ContactSection = () => {
 
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState(null);
   const dispatch = useDispatch();
 
   const {
@@ -42,18 +39,12 @@ const ContactSection = () => {
 
   const onFormSubmit = async (data) => {
     setLoading(true);
-    if (!turnstileToken) {
-      dispatch(setError("Please complete the security check."));
-      setLoading(false);
-      return;
-    }
     try {
-      const payload = { ...data, turnstileToken };
-      await axiosInstance.post("/contact", payload);
+      await axiosInstance.post("/contact", data);
       setIsSuccess(true);
       reset();
     } catch {
-      setTurnstileToken(null);
+      // handled globally or error display
     } finally {
       setLoading(false);
     }
@@ -225,25 +216,10 @@ const ContactSection = () => {
                     {...register("message", { required: "Message is required" })}
                   />
 
-                  <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-border-soft">
-                    <div className="w-full sm:w-auto flex justify-center scale-90 sm:scale-100 origin-left">
-                      <div className="overflow-hidden h-[65px] max-h-[65px] rounded-lg">
-                        <Turnstile
-                          siteKey={
-                            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY &&
-                            !process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY.includes('your_cloudflare')
-                              ? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-                              : "1x00000000000000000000AA"
-                          }
-                          onSuccess={(token) => setTurnstileToken(token)}
-                          options={{ theme: "auto" }}
-                        />
-                      </div>
-                    </div>
-
+                  <div className="pt-4 flex items-center justify-end border-t border-border-soft">
                     <button
                       type="submit"
-                      disabled={loading || !turnstileToken}
+                      disabled={loading}
                       className="w-full sm:w-auto relative group flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-accent text-bg font-sans text-[0.85rem] font-bold tracking-widest uppercase hover:shadow-[0_0_20px_rgba(46,197,212,0.4)] disabled:opacity-50 disabled:hover:shadow-none transition-all duration-300 overflow-hidden shrink-0 border-0 cursor-pointer"
                     >
                       <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>

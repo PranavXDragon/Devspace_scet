@@ -1,13 +1,10 @@
 import React from "react";
-import { QrCode, ShieldCheck, Loader2 } from "lucide-react";
-import { Turnstile } from "@marsidev/react-turnstile";
+import { QrCode, Loader2 } from "lucide-react";
 
 export default function VerificationDetailsForm({
   register,
   errors,
-  setTurnstileToken,
   loading,
-  turnstileToken,
 }) {
   return (
     <>
@@ -44,29 +41,10 @@ export default function VerificationDetailsForm({
           )}
         </div>
       </div>
-      
-      <div className="mb-8 flex flex-col items-center border-2 border-border-soft p-4 bg-card-hover">
-        <div className="flex items-center gap-2 mb-4 text-xs font-bold uppercase tracking-widest text-text-muted">
-          <ShieldCheck className="w-4 h-4 text-accent" /> Verification
-          Required
-        </div>
-        <div className="overflow-hidden h-[65px] max-h-[65px] rounded-lg">
-          <Turnstile
-            siteKey={
-              process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY &&
-              !process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY.includes('your_cloudflare')
-                ? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-                : "1x00000000000000000000AA"
-            }
-            onSuccess={(token) => setTurnstileToken(token)}
-            options={{ theme: "auto" }}
-          />
-        </div>
-      </div>
 
       <button
         type="submit"
-        disabled={loading || !turnstileToken}
+        disabled={loading}
         className="w-full bg-text text-bg py-5 font-bold uppercase tracking-widest hover:bg-accent hover:text-[#111111] transition-colors border-2 border-transparent hover:border-accent disabled:opacity-50 flex justify-center items-center gap-3"
       >
         {loading ? (

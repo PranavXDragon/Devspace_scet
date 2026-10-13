@@ -9,13 +9,12 @@ import { verifyTurnstileToken } from "../utils/turnstile.js";
 const submitContactForm = asyncHandler(async (req, res) => {
   const { name, email, subject, message, turnstileToken } = req.body;
 
-  if (!turnstileToken) {
-    throw new ApiError(400, "Bot verification token is missing");
-  }
-
-  const isHuman = await verifyTurnstileToken(turnstileToken);
-  if (!isHuman) {
-    throw new ApiError(400, "Bot verification failed. Please try again.");
+  // Bot verification only if token provided and secret key configured
+  if (turnstileToken && process.env.TURNSTILE_SECRET_KEY) {
+    const isHuman = await verifyTurnstileToken(turnstileToken);
+    if (!isHuman) {
+      throw new ApiError(400, "Bot verification failed. Please try again.");
+    }
   }
 
   if (!name || !email || !subject || !message) {

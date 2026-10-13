@@ -20,14 +20,12 @@ const registerStudent = asyncHandler(async (req, res) => {
     turnstileToken,
   } = req.body;
 
-  // 1. Verify Bot Token
-  if (!turnstileToken) {
-    throw new ApiError(400, 'Bot verification token is missing');
-  }
-
-  const isHuman = await verifyTurnstileToken(turnstileToken);
-  if (!isHuman) {
-    throw new ApiError(400, 'Bot verification failed. Please try again.');
+  // 1. Verify Bot Token if provided and configured
+  if (turnstileToken && process.env.TURNSTILE_SECRET_KEY) {
+    const isHuman = await verifyTurnstileToken(turnstileToken);
+    if (!isHuman) {
+      throw new ApiError(400, 'Bot verification failed. Please try again.');
+    }
   }
 
   // 2. Validate Required Fields
