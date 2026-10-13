@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -180,7 +180,9 @@ export default function ManageContacts() {
                       </h4>
                       <div className="shrink-0 text-xs text-text-muted flex items-center gap-1.5 ml-4">
                         <Clock className="w-3.5 h-3.5" />
-                        {new Date(msg.createdAt).toLocaleDateString()}
+                        {msg.created_at || msg.createdAt
+                          ? new Date(msg.created_at || msg.createdAt).toLocaleDateString()
+                          : "Recently"}
                       </div>
                     </div>
                     <p

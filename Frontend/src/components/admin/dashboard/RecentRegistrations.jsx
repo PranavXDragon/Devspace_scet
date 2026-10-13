@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 
 import Link from 'next/link';;
 
@@ -21,28 +21,39 @@ export default function RecentRegistrations({ metrics, recentLogs }) {
             No recent registrations found.
           </p>
         ) : (
-          recentLogs.map((log) => (
-            <div key={log._id} className="flex gap-4">
-              <div
-                className={`mt-1 w-2 h-2 rounded-full shrink-0 ${
-                  log.status === "APPROVED"
-                    ? "bg-accent"
-                    : log.status === "REJECTED"
-                      ? "bg-danger"
-                      : "bg-warning"
-                }`}
-              ></div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-text truncate">
-                  <span className="font-medium text-text">{log.name}</span>{" "}
-                  applied for Devspace ({log.course}).
-                </p>
-                <p className="text-xs text-text-muted mt-1">
-                  {new Date(log.createdAt).toLocaleDateString()}
-                </p>
+          recentLogs.map((log, idx) => {
+            const rawDate = log.created_at || log.createdAt;
+            const parsedDate = rawDate ? new Date(rawDate) : null;
+            const formattedDate =
+              parsedDate && !isNaN(parsedDate.getTime())
+                ? parsedDate.toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : "Recently";
+
+            return (
+              <div key={log.id || log._id || idx} className="flex gap-4">
+                <div
+                  className={`mt-1 w-2 h-2 rounded-full shrink-0 ${
+                    log.status === "APPROVED"
+                      ? "bg-accent"
+                      : log.status === "REJECTED"
+                        ? "bg-danger"
+                        : "bg-warning"
+                  }`}
+                ></div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-text truncate">
+                    <span className="font-medium text-text">{log.name}</span>{" "}
+                    applied for Devspace ({log.course}).
+                  </p>
+                  <p className="text-xs text-text-muted mt-1">{formattedDate}</p>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

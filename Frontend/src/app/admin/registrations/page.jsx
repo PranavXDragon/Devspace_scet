@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -205,7 +205,7 @@ export default function Registrations() {
           `"${reg.transactionId || ""}"`,
           `"${reg.paymentMode || "ONLINE"}"`,
           `"${reg.status || ""}"`,
-          `"${new Date(reg.createdAt).toLocaleDateString()}"`,
+          `"${reg.created_at || reg.createdAt ? new Date(reg.created_at || reg.createdAt).toLocaleDateString() : ""}"`,
         ];
         csvRows.push(row.join(","));
       });
@@ -228,7 +228,10 @@ export default function Registrations() {
   };
 
   const isNewEntry = (reg) => {
-    const createdAt = new Date(reg.createdAt);
+    const rawDate = reg.created_at || reg.createdAt;
+    if (!rawDate) return false;
+    const createdAt = new Date(rawDate);
+    if (isNaN(createdAt.getTime())) return false;
     const now = new Date();
     const within24Hours = now - createdAt < 24 * 60 * 60 * 1000;
     return within24Hours && reg.status === "PENDING";

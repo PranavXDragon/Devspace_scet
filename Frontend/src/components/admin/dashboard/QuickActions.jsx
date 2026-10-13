@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 
 import Link from 'next/link';;
 import { Calendar, Users2, FileText, Settings, Scan } from "lucide-react";
@@ -37,11 +37,11 @@ export default function QuickActions() {
             <FileText className="w-5 h-5 text-accent" /> Certificate Management
           </div>
         </Link>
-        <Link href="/admin/dashboard"
+        <Link href="/admin/settings"
           className="flex items-center justify-between p-3 rounded-xl border border-border-soft hover:border-accent/30 hover:bg-accent/10 transition-colors group"
         >
           <div className="flex items-center gap-3 text-sm font-medium text-text group-hover:text-accent">
-            <Settings className="w-5 h-5 text-text-muted group-hover:text-accent" />{" "}
+            <Settings className="w-5 h-5 text-accent" />{" "}
             System Settings
           </div>
         </Link>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
 import { LinkIcon, Download, Loader2, QrCode, Trash2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -232,13 +232,15 @@ export default function QRGenerator() {
                     </a>
                   </div>
                   <p className="text-[10px] text-text-muted font-mono uppercase tracking-widest pt-3 border-t border-border">
-                    {new Date(item.createdAt).toLocaleDateString(undefined, {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                    {item.created_at || item.createdAt
+                      ? new Date(item.created_at || item.createdAt).toLocaleDateString(undefined, {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
+                      : "Recently"}
                   </p>
                 </div>
               </div>
