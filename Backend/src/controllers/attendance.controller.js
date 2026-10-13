@@ -292,7 +292,7 @@ export const getAdminAttendanceRecords = asyncHandler(async (req, res) => {
                 id: rec.id,
                 studentId: studentCode || rec.student_id,
                 name: name || (email ? email.split('@')[0] : 'Student'),
-                email: email || (rec.student_id?.includes('@') ? rec.student_id : 'student@scet.ac.in'),
+                email: email || (rec.student_id?.includes('@') ? rec.student_id : '—'),
                 date: rec.date,
                 status: rec.status || 'present',
                 time: istTimeString,

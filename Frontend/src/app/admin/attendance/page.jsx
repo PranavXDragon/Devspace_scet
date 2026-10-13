@@ -161,7 +161,7 @@ export default function AdminAttendancePage() {
   // Export to CSV
   const handleExportCSV = () => {
     if (!records.length) return;
-    const headers = ['Student Name', 'Email', 'Student ID', 'Date', 'Time (IST)', 'Status', 'Distance'];
+    const headers = ['Student Name', 'Personal Email', 'Student ID', 'Date', 'Time (IST)', 'Status', 'Distance'];
     const rows = records.map(r => [
       `"${r.name || 'Student'}"`,
       `"${r.email || ''}"`,
@@ -388,7 +388,7 @@ export default function AdminAttendancePage() {
               <thead className="bg-bg/80 text-text-muted uppercase text-[10px] font-mono tracking-wider border-b border-border">
                 <tr>
                   <th className="py-3 px-4">Student</th>
-                  <th className="py-3 px-4">College Email</th>
+                  <th className="py-3 px-4">Personal Email</th>
                   <th className="py-3 px-4">Check-In Time</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Verification</th>
