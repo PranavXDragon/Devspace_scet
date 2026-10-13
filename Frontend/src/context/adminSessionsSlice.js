@@ -1,4 +1,4 @@
-﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { adminService } from "@/services/adminService";
 
 export const fetchAdminSessions = createAsyncThunk(
@@ -6,7 +6,15 @@ export const fetchAdminSessions = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await adminService.getSessions();
-      return response.data?.data || response.data || [];
+      const rawList = response.data?.data || response.data || response || [];
+      const list = Array.isArray(rawList) ? rawList : [];
+      return list.map((s) => ({
+        ...s,
+        _id: s._id || s.id,
+        id: s.id || s._id,
+        createdAt: s.createdAt || s.created_at || new Date().toISOString(),
+        created_at: s.created_at || s.createdAt || new Date().toISOString(),
+      }));
     } catch (err) {
       return rejectWithValue(err);
     }
@@ -54,7 +62,9 @@ const adminSessionsSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(killAdminSession.fulfilled, (state, action) => {
-        state.sessions = state.sessions.filter((s) => s._id !== action.payload);
+        state.sessions = state.sessions.filter(
+          (s) => s._id !== action.payload && s.id !== action.payload
+        );
       });
   },
 });

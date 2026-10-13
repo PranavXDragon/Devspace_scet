@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -91,59 +91,62 @@ export default function ManageSessions() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {sessions.map((session) => (
-            <div
-              key={session._id}
-              className="bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start gap-4">
-                {/* Device Icon */}
-                <div className="w-12 h-12 bg-card-hover border border-border-soft rounded-xl flex items-center justify-center text-text-text-muted shrink-0">
-                  {session.device?.toUpperCase() === "MOBILE" ? (
-                    <Smartphone className="w-6 h-6 text-text-text-muted" />
-                  ) : (
-                    <Monitor className="w-6 h-6 text-text-text-muted" />
-                  )}
-                </div>
+          {sessions.map((session) => {
+            const sid = session._id || session.id;
+            return (
+              <div
+                key={sid}
+                className="bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start gap-4">
+                  {/* Device Icon */}
+                  <div className="w-12 h-12 bg-card-hover border border-border-soft rounded-xl flex items-center justify-center text-text-text-muted shrink-0">
+                    {session.device?.toUpperCase() === "MOBILE" ? (
+                      <Smartphone className="w-6 h-6 text-text-text-muted" />
+                    ) : (
+                      <Monitor className="w-6 h-6 text-text-text-muted" />
+                    )}
+                  </div>
 
-                {/* Session Details */}
-                <div>
-                  <h3 className="text-lg font-bold text-text flex items-center gap-2">
-                    {session.os || "Unknown OS"}
-                    <span className="text-text-text-muted">/</span>
-                    <span className="text-accent">
-                      {session.browser || "Unknown Browser"}
-                    </span>
-                  </h3>
+                  {/* Session Details */}
+                  <div>
+                    <h3 className="text-lg font-bold text-text flex items-center gap-2">
+                      {session.os || "Unknown OS"}
+                      <span className="text-text-text-muted">/</span>
+                      <span className="text-accent">
+                        {session.browser || "Unknown Browser"}
+                      </span>
+                    </h3>
 
-                  <div className="mt-1.5 space-y-1">
-                    <p className="text-sm font-medium text-text-text-muted flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-text-text-muted" />
-                      IP: {formatIP(session.ipAddress)}
-                    </p>
-                    <p className="text-sm font-medium text-text-text-muted flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-text-text-muted" />
-                      Est: {new Date(session.createdAt).toLocaleString()}
-                    </p>
+                    <div className="mt-1.5 space-y-1">
+                      <p className="text-sm font-medium text-text-text-muted flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-text-text-muted" />
+                        IP: {formatIP(session.ipAddress)}
+                      </p>
+                      <p className="text-sm font-medium text-text-text-muted flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-text-text-muted" />
+                        Est: {new Date(session.createdAt || session.created_at || Date.now()).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Action Button */}
-              <button
-                onClick={() => handleKill(session._id)}
-                disabled={updatingId === session._id}
-                className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-danger/10 hover:bg-danger/10 text-danger rounded-lg text-sm font-semibold transition-colors border border-danger/30 hover:border-danger/30 shrink-0 disabled:opacity-50"
-              >
-                {updatingId === session._id ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Trash2 className="w-4 h-4" />
-                )}
-                {updatingId === session._id ? "Revoking..." : "Revoke Access"}
-              </button>
-            </div>
-          ))}
+                {/* Action Button */}
+                <button
+                  onClick={() => handleKill(sid)}
+                  disabled={updatingId === sid}
+                  className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-danger/10 hover:bg-danger/10 text-danger rounded-lg text-sm font-semibold transition-colors border border-danger/30 hover:border-danger/30 shrink-0 disabled:opacity-50"
+                >
+                  {updatingId === sid ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  {updatingId === sid ? "Revoking..." : "Revoke Access"}
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

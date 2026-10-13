@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {  useRouter, usePathname  } from 'next/navigation';;
@@ -27,10 +27,20 @@ import AdminSettings from "../settings/page";
 export default function AdminProfile() {
   const dispatch = useDispatch();
   const navigate = useRouter();
-  const location = usePathname();
-  const { user } = useSelector((state) => state.auth);
+  const [activeTab, setActiveTab] = useState("#profile");
 
-  const currentTab = location.hash || "#profile";
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (window.location.hash) {
+        setActiveTab(window.location.hash);
+      }
+      const handleHashChange = () => {
+        setActiveTab(window.location.hash || "#profile");
+      };
+      window.addEventListener("hashchange", handleHashChange);
+      return () => window.removeEventListener("hashchange", handleHashChange);
+    }
+  }, []);
 
   // Profile State
   const [formData, setFormData] = useState({
@@ -98,9 +108,10 @@ export default function AdminProfile() {
       if (profilePhoto) submitData.append("profilePhoto", profilePhoto);
 
       const response = await adminService.updateProfile(submitData);
+      const updatedAdmin = response.data?.data || response.data || response;
 
-      if (response.success) {
-        dispatch(setLogin(response.data));
+      if (response.success || updatedAdmin) {
+        dispatch(setLogin(updatedAdmin));
         setMessage({ type: "success", text: "Profile updated successfully!" });
       }
     } catch (error) {
@@ -198,20 +209,26 @@ export default function AdminProfile() {
         {/* Horizontal Tabs (Top Right) */}
         <div className="flex space-x-1 bg-card-hover/80 p-1.5 rounded-xl w-full lg:w-max overflow-x-auto border border-border/60 shrink-0">
           {tabs.map((tab) => (
-            <a
+            <button
               key={tab.id}
-              href={tab.id}
-              className={`flex items-center gap-2 px-5 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap ${
-                currentTab === tab.id
+              type="button"
+              onClick={() => {
+                setActiveTab(tab.id);
+                if (typeof window !== "undefined") {
+                  window.history.pushState(null, "", tab.id);
+                }
+              }}
+              className={`flex items-center gap-2 px-5 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === tab.id
                   ? "bg-card text-accent shadow-sm ring-1 ring-slate-900/5 font-semibold"
                   : "text-text-text-muted hover:text-text hover:bg-card-hover/50"
               }`}
             >
               <tab.icon
-                className={`w-4 h-4 ${currentTab === tab.id ? "text-accent" : "text-text-text-muted"}`}
+                className={`w-4 h-4 ${activeTab === tab.id ? "text-accent" : "text-text-text-muted"}`}
               />
               {tab.name}
-            </a>
+            </button>
           ))}
         </div>
       </div>
@@ -219,7 +236,7 @@ export default function AdminProfile() {
       {/* Main Content Area */}
       <div className="space-y-6 min-w-0">
         {/* 1. Profile Edit */}
-        {currentTab === "#profile" && (
+        {activeTab === "#profile" && (
           <div
             className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden"
           >
@@ -382,7 +399,7 @@ export default function AdminProfile() {
         )}
 
         {/* 2. Change Password */}
-        {currentTab === "#password" && (
+        {activeTab === "#password" && (
           <div
             className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden"
           >
@@ -578,14 +595,14 @@ export default function AdminProfile() {
         )}
 
         {/* 3. Sessions */}
-        {currentTab === "#sessions" && (
+        {activeTab === "#sessions" && (
           <div>
             <ManageSessions />
           </div>
         )}
 
         {/* 4. Settings */}
-        {currentTab === "#settings" && (
+        {activeTab === "#settings" && (
           <div id="settings-tab">
             <AdminSettings />
           </div>
