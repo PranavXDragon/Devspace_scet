@@ -175,18 +175,52 @@
 
 .cl-socialButtonsBlockButton {
   background-color: #161b22 !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
   color: #ffffff !important;
   transition: all 0.2s ease !important;
+  border-radius: 0.75rem !important;
 }
 
 .cl-socialButtonsBlockButton:hover {
   background-color: #1f2937 !important;
-  border-color: rgba(46, 197, 212, 0.5) !important;
+  border-color: rgba(46, 197, 212, 0.6) !important;
+  box-shadow: 0 0 20px rgba(46, 197, 212, 0.2) !important;
 }
 
 .cl-socialButtonsBlockButtonText {
   color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+.cl-socialButtonsIconButton {
+  background-color: #161b22 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 0.75rem !important;
+  color: #ffffff !important;
+  transition: all 0.2s ease !important;
+  padding: 0.65rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.cl-socialButtonsIconButton:hover {
+  background-color: #1f2937 !important;
+  border-color: rgba(46, 197, 212, 0.6) !important;
+  box-shadow: 0 0 15px rgba(46, 197, 212, 0.25) !important;
+  transform: translateY(-1px);
+}
+
+/* Invert black GitHub logo to bright crisp white on dark theme */
+.cl-socialButtonsIconButton__github img,
+.cl-socialButtonsBlockButton__github img,
+.cl-socialButtonsProviderIcon__github img,
+.cl-socialButtonsProviderIcon__github svg,
+button[data-provider="github"] img,
+button[data-provider="oauth_github"] img,
+img[alt*="GitHub" i],
+img[src*="github.png"] {
+  filter: invert(1) brightness(2) !important;
 }
 
 .cl-dividerLine {
