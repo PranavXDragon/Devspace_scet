@@ -171,7 +171,7 @@ const getStudentDashboard = asyncHandler(async (req, res) => {
     supabase.from('certificates').select('*').eq('studentEmail', email).order('created_at', { ascending: false }),
     studentId ? supabase.from('student_stats').select('*').eq('student_id', studentId).maybeSingle() : Promise.resolve({ data: null }),
     supabase.from('attendance_records').select('date, created_at').or(`student_id.eq.${studentId || 'none'},student_id.eq.${email}`).order('date', { ascending: false }),
-    studentId ? supabase.from('problem_submissions').select('id, created_at, status').eq('student_id', studentId).eq('status', 'Accepted') : Promise.resolve({ data: [] }),
+    studentId ? supabase.from('code_submissions').select('id, created_at, status').eq('student_id', studentId).eq('status', 'Accepted') : Promise.resolve({ data: [] }),
     supabase.from('challenges').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('events').select('*').gte('date', new Date().toISOString().split('T')[0]).order('date', { ascending: true }).limit(3),
     supabase.from('learning_roadmaps').select('*').limit(2)
@@ -187,16 +187,22 @@ const getStudentDashboard = asyncHandler(async (req, res) => {
   let upcomingEventsList = eventsRes.status === 'fulfilled' ? eventsRes.value?.data || [] : [];
   const roadmapsList = roadmapsRes.status === 'fulfilled' ? roadmapsRes.value?.data || [] : [];
 
-  // Fallbacks for challenge if challenges table had none
+  // Fallbacks for challenge from coding_problems or questions
   if (!latestChallenge) {
     try {
-      const { data: q } = await supabase.from('questions').select('id, title, difficulty, topic, points').eq('status', 'Published').limit(1).maybeSingle();
+      const { data: q } = await supabase
+        .from('coding_problems')
+        .select('id, title, difficulty, description')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
       if (q) {
         latestChallenge = {
           id: q.id,
           title: q.title,
           difficulty: q.difficulty || 'Medium',
-          reward_points: q.points || 50,
+          reward_points: q.difficulty === 'Hard' ? 100 : q.difficulty === 'Medium' ? 50 : 25,
           type: 'question'
         };
       }

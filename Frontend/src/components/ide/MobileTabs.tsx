@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Code, Terminal, FileInput } from "lucide-react";
+import { Code, Terminal, FileInput, BookOpen } from "lucide-react";
 import Editor from "./Editor";
 import InputPanel from "./InputPanel";
 import OutputConsole from "./Console";
+import ProblemPanel, { ProblemData } from "./ProblemPanel";
 
 interface MobileTabsProps {
   code: string;
@@ -19,6 +20,7 @@ interface MobileTabsProps {
   onClearOutput?: () => void;
   activeTab?: string;
   onActiveTabChange?: (tab: string) => void;
+  problem?: ProblemData | null;
 }
 
 export default function MobileTabs({
@@ -35,29 +37,48 @@ export default function MobileTabs({
   onClearOutput,
   activeTab: controlledTab,
   onActiveTabChange,
+  problem,
 }: MobileTabsProps) {
-  const [internalTab, setInternalTab] = useState("editor");
+  const [internalTab, setInternalTab] = useState(problem ? "problem" : "editor");
   const activeTab = controlledTab ?? internalTab;
   const handleTabChange = onActiveTabChange ?? setInternalTab;
 
   return (
     <div className="flex flex-col h-full">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col h-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="editor" className="flex items-center gap-2">
-            <Code className="h-4 w-4" />
-            <span className="hidden sm:inline">Editor</span>
+        <TabsList className={`grid w-full ${problem ? 'grid-cols-4' : 'grid-cols-3'} mb-3`}>
+          {problem && (
+            <TabsTrigger value="problem" className="flex items-center gap-1 text-xs">
+              <BookOpen className="h-3.5 w-3.5 text-accent" />
+              <span>Problem</span>
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="editor" className="flex items-center gap-1 text-xs">
+            <Code className="h-3.5 w-3.5" />
+            <span>Editor</span>
           </TabsTrigger>
-          <TabsTrigger value="input" className="flex items-center gap-2">
-            <FileInput className="h-4 w-4" />
-            <span className="hidden sm:inline">Input</span>
+          <TabsTrigger value="input" className="flex items-center gap-1 text-xs">
+            <FileInput className="h-3.5 w-3.5" />
+            <span>Input</span>
           </TabsTrigger>
-          <TabsTrigger value="console" className="flex items-center gap-2">
-            <Terminal className="h-4 w-4" />
-            <span className="hidden sm:inline">Console</span>
+          <TabsTrigger value="console" className="flex items-center gap-1 text-xs">
+            <Terminal className="h-3.5 w-3.5" />
+            <span>Console</span>
           </TabsTrigger>
         </TabsList>
         
+        {problem && (
+          <TabsContent value="problem" className="flex-1 mt-0 h-full overflow-hidden">
+            <ProblemPanel
+              problem={problem}
+              onUseInput={(val) => {
+                onInputChange(val);
+                handleTabChange("input");
+              }}
+            />
+          </TabsContent>
+        )}
+
         <TabsContent value="editor" className="flex-1 mt-0">
           <Editor
             code={code}

@@ -28,6 +28,18 @@ class StudentService {
   async saveResumeDraft(payload) {
     return axiosInstance.post("/students/resume", payload);
   }
+
+  async getProblems() {
+    return axiosInstance.get("/coding/problems");
+  }
+
+  async getProblem(id) {
+    return axiosInstance.get(`/coding/problems/${id}`);
+  }
+
+  async submitProblem(id, payload) {
+    return axiosInstance.post(`/coding/problems/${id}/submit`, payload);
+  }
 }
 
 export const studentService = new StudentService();

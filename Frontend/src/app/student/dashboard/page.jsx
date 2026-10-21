@@ -175,7 +175,7 @@ export default function StudentDashboard() {
                   </div>
                 </div>
                 <Link
-                  href={todaysChallenge.type === 'question' ? `/student/problems` : `/student/challenges`}
+                  href={todaysChallenge.type === 'question' ? `/student/ide?problem=${todaysChallenge.id}` : `/student/challenges`}
                   className="px-6 py-3 bg-accent text-[#0b0f17] font-bold rounded-lg hover:bg-accent/90 transition-colors shrink-0 text-center text-sm"
                 >
                   Solve Now →
