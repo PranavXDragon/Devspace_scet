@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import contentData from "@/data/content.json";
 import {
   Globe,
@@ -55,11 +55,11 @@ const Domains = () => {
       <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[30%] h-[50%] bg-[radial-gradient(circle_at_left,var(--tw-gradient-stops))] from-accent/10 to-transparent blur-3xl pointer-events-none -z-10"></div>
       <div className="absolute top-[20%] right-0 w-[40%] h-[40%] bg-[radial-gradient(circle_at_right,var(--tw-gradient-stops))] from-accent/5 to-transparent blur-3xl pointer-events-none -z-10"></div>
 
-      <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-12">
-        <div className="mb-12 text-center relative">
-          <h2 className="font-sans text-[clamp(3.5rem,8vw,6.5rem)] font-bold leading-[0.9] tracking-tight mb-6 text-transparent bg-clip-text bg-gradient-to-br from-text to-text/70">
+      <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
+        <div className="mb-10 sm:mb-12 text-center relative">
+          <h2 className="font-sans text-[clamp(2.5rem,7vw,6.5rem)] font-bold leading-[0.9] tracking-tight mb-6 text-transparent bg-clip-text bg-gradient-to-br from-text to-text/70">
             <span className="transition-colors duration-300">{domains.titlePart1}</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent/70 drop-shadow-[0_0_20px_rgba(46,197,212,0.4)] ml-4">{domains.titlePart2}</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent/70 drop-shadow-[0_0_20px_rgba(46,197,212,0.4)] ml-3 sm:ml-4">{domains.titlePart2}</span>
           </h2>
           <div className="flex items-center justify-center gap-4 mb-6 pt-2">
             <div className="w-16 h-[2px] bg-gradient-to-l from-accent/50 to-transparent"></div>

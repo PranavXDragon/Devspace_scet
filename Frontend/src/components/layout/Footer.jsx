@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 
 import Link from 'next/link';;
 import { ASSETS } from "@/config/assets";
@@ -52,8 +52,8 @@ const Footer = ({ layout, onFooterClick }) => {
     : `Â© ${currentYear} Devspace. ALL RIGHTS RESERVED.`;
 
   return (
-    <footer className="border-t border-border bg-bg pt-16 pb-8 px-6 md:px-12">
-      <div className=" mx-auto">
+    <footer className="border-t border-border bg-bg pt-12 sm:pt-16 pb-8 px-4 sm:px-6 md:px-12 w-full max-w-full overflow-hidden">
+      <div className="max-w-[1400px] mx-auto">
         
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-12 mb-12">
           

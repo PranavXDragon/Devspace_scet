@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 
 import Link from 'next/link';;
 import { CalendarDays, Users, Globe, ChevronRight } from "lucide-react";
@@ -8,7 +8,7 @@ import { ASSETS } from "@/config/assets";
 const HeroSection = () => {
   const { hero } = contentData.landing;
   const CustomButton = ({ to, variant, children, icon: Icon }) => {
-    const baseStyle = "group inline-flex items-center justify-center gap-3 px-8 py-4 font-sans text-[0.85rem] font-bold tracking-[0.2em] uppercase transition-all duration-300 relative overflow-hidden";
+    const baseStyle = "group inline-flex items-center justify-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 font-sans text-[0.8rem] sm:text-[0.85rem] font-bold tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all duration-300 relative overflow-hidden w-full sm:w-auto";
     const variantStyle = variant === "solid" 
       ? "bg-accent text-bg shadow-[0_0_20px_rgba(46,197,212,0.3)] hover:shadow-[0_0_35px_rgba(46,197,212,0.5)] border-0" 
       : "bg-card/40 backdrop-blur-md text-text border border-border-soft hover:border-accent/50 hover:bg-card/60 shadow-sm hover:shadow-[0_0_20px_rgba(46,197,212,0.15)]";
@@ -33,7 +33,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative min-h-[calc(100vh-6.75rem)] flex flex-col lg:flex-row overflow-hidden" id="about">
+    <section className="relative min-h-[calc(100vh-6.75rem)] flex flex-col lg:flex-row overflow-hidden w-full max-w-full" id="about">
       {/* Dynamic Background Glows */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
          <div className="absolute top-[10%] left-[5%] w-[40vw] h-[40vw] max-w-[600px] max-h-[600px] rounded-full bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-accent/15 via-accent/5 to-transparent blur-3xl opacity-60 pointer-events-none"></div>
@@ -44,14 +44,14 @@ const HeroSection = () => {
          }}></div>
       </div>
 
-      <div className="flex-1 px-6 pt-16 pb-20 lg:px-16 lg:pt-0 relative z-10 lg:w-[60%] flex flex-col justify-center min-h-[50vh] lg:min-h-full">
-        <div className="relative mt-4 lg:mt-6 mb-6 lg:mb-8">
+      <div className="flex-1 px-4 sm:px-6 pt-12 pb-16 lg:px-16 lg:pt-0 relative z-10 lg:w-[60%] flex flex-col justify-center min-h-[50vh] lg:min-h-full overflow-hidden max-w-full">
+        <div className="relative mt-2 lg:mt-6 mb-4 lg:mb-8 overflow-hidden max-w-full">
           {/* Decorative Background Text */}
-          <div className="absolute top-[45%] left-0 -translate-y-1/2 text-[clamp(8rem,26vw,18rem)] font-sans leading-none tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white/5 to-transparent select-none pointer-events-none z-0 whitespace-nowrap">
+          <div className="absolute top-[45%] left-0 -translate-y-1/2 text-[clamp(3.5rem,18vw,16rem)] font-sans leading-none tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white/5 to-transparent select-none pointer-events-none z-0 whitespace-nowrap overflow-hidden max-w-full">
             DEVSPACE
           </div>
           
-          <h1 className="relative z-10 flex flex-wrap items-end gap-[0.3rem] font-sans text-[clamp(4.5rem,14vw,12rem)] leading-[0.85] tracking-[0.02em]">
+          <h1 className="relative z-10 flex flex-wrap items-end gap-[0.3rem] font-sans text-[clamp(2.75rem,11vw,10rem)] leading-[0.88] tracking-[0.02em]">
             <span className="text-text">{hero.titlePart1}</span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent/60 drop-shadow-[0_0_25px_rgba(46,197,212,0.4)]">
               {hero.titlePart2}
@@ -59,14 +59,14 @@ const HeroSection = () => {
           </h1>
         </div>
 
-        <p className="m-0 mb-8 font-serif text-[clamp(1.4rem,2vw,2.1rem)] italic text-transparent bg-clip-text bg-gradient-to-r from-text to-text-muted drop-shadow-md">
+        <p className="m-0 mb-6 lg:mb-8 font-serif text-[clamp(1.15rem,2vw,2.1rem)] italic text-transparent bg-clip-text bg-gradient-to-r from-text to-text-muted drop-shadow-md">
           {hero.quote}
         </p>
-        <p className="m-0 text-text-muted font-mono text-[1rem] leading-[1.8] max-w-[38rem]">
+        <p className="m-0 text-text-muted font-mono text-[0.92rem] sm:text-[1rem] leading-[1.75] max-w-[38rem]">
           {hero.description}
         </p>
         
-        <div className="flex flex-wrap items-center gap-5 mt-10" id="join">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 mt-8 lg:mt-10" id="join">
           <CustomButton to="/events" variant="solid" icon={CalendarDays}>
             {hero.ctaPrimary}
           </CustomButton>
@@ -76,7 +76,7 @@ const HeroSection = () => {
         </div>
       </div>
 
-      <div className="lg:w-[42%] flex flex-col justify-center relative z-10 min-h-full pb-16 lg:pb-0">
+      <div className="lg:w-[42%] flex flex-col justify-center relative z-10 min-h-full pb-16 lg:pb-0 max-w-full overflow-hidden">
         <div className="absolute inset-0 hero-right-panel hidden lg:block z-0 shadow-[-20px_0_40px_rgba(0,0,0,0.05)] bg-gradient-to-l from-card/30 to-transparent">
           <div className="absolute inset-0 opacity-[0.04]" style={{
             backgroundImage: `radial-gradient(#111 1.5px, transparent 1.5px)`,
@@ -84,12 +84,12 @@ const HeroSection = () => {
           }}></div>
         </div>
         
-        <div className="relative z-10 w-full flex flex-col gap-6 p-6 lg:p-12 lg:pl-28" aria-label="Devspace metrics">
+        <div className="relative z-10 w-full flex flex-col gap-4 sm:gap-6 p-4 sm:p-6 lg:p-12 lg:pl-28 max-w-full" aria-label="Devspace metrics">
           {hero.stats.map((stat, index) => {
             const Icon = icons[stat.label] || CalendarDays;
             return (
               <article 
-                className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6 lg:p-8 bg-card/60 backdrop-blur-xl rounded-2xl border border-border-soft shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:shadow-[0_15px_40px_rgba(46,197,212,0.1)] hover:border-accent/40 hover:-translate-y-1 transition-all duration-500 relative group overflow-hidden" 
+                className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 p-4 sm:p-6 lg:p-8 bg-card/60 backdrop-blur-xl rounded-2xl border border-border-soft shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:shadow-[0_15px_40px_rgba(46,197,212,0.1)] hover:border-accent/40 hover:-translate-y-1 transition-all duration-500 relative group overflow-hidden" 
                 key={stat.label}
               >
                 {/* Glow layer inside card */}

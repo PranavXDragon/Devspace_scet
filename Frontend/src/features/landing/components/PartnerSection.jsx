@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import contentData from "@/data/content.json";
 import { ArrowRight } from "lucide-react";
 import { ASSETS } from "@/config/assets";
@@ -24,8 +24,8 @@ const PartnerSection = () => {
         ))}
       </svg>
 
-      <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-12">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 mb-16">
+      <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 mb-12 sm:mb-16">
           <div className="max-w-[45rem]">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-6 h-[2px] bg-accent"></div>
@@ -33,7 +33,7 @@ const PartnerSection = () => {
                 // OUR PARTNERS
               </p>
             </div>
-            <h2 className="font-sans text-[clamp(2.5rem,6vw,5rem)] font-bold leading-[0.95] tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-br from-text to-text/70 mb-6">
+            <h2 className="font-sans text-[clamp(1.85rem,5.5vw,5rem)] font-bold leading-[0.95] tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-br from-text to-text/70 mb-6 break-words">
               ORGANIZATIONS<br/>WE'VE WORKED WITH
             </h2>
             <div className="flex items-center gap-1 mb-8 text-accent font-bold tracking-widest text-lg italic">

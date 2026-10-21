@@ -52,13 +52,13 @@ const Navbar = ({ layout }) => {
         
         {/* 1. Brand Logo */}
         <Link href="/"
-          className="flex items-center gap-3 shrink-0 group"
+          className="flex items-center gap-2 sm:gap-3 shrink-0 group"
           aria-label="Devspace Club home"
         >
           <img 
             src="/logo.png" 
             alt="Devspace" 
-            className="h-12 md:h-16 w-auto object-contain group-hover:opacity-80 transition-opacity" 
+            className="h-9 sm:h-12 md:h-16 w-auto object-contain group-hover:opacity-80 transition-opacity" 
           />
         </Link>
 
@@ -105,7 +105,7 @@ const Navbar = ({ layout }) => {
         </nav>
 
         {/* 3. Right Actions: Meta Kicker, Theme Toggle, Desktop CTA, and Mobile Toggle */}
-        <div className="flex items-center gap-3 md:gap-5 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-5 shrink-0">
           
           {/* Meta Kicker - Hidden below XL screens */}
           <span className="hidden xl:inline-block text-accent font-mono text-xs tracking-wider uppercase font-semibold pr-4 border-r border-border">
@@ -117,7 +117,7 @@ const Navbar = ({ layout }) => {
             <button
               type="button"
               onClick={toggleTheme}
-              className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer text-text hover:bg-card-hover hover:shadow-sm"
+              className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer text-text hover:bg-card-hover hover:shadow-sm shrink-0"
               aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
             >
               {isDark ? (
@@ -127,7 +127,7 @@ const Navbar = ({ layout }) => {
               )}
             </button>
           ) : (
-            <div className="w-9 h-9 md:w-10 md:h-10 rounded-full" />
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-full shrink-0" />
           )}
 
           {/* Desktop CTA Buttons */}
@@ -167,7 +167,7 @@ const Navbar = ({ layout }) => {
           {/* Mobile Hamburger Toggle */}
           <button
             type="button"
-            className="lg:hidden flex justify-center items-center w-9 h-9 rounded-md text-text transition-colors focus:outline-none hover:bg-card-hover cursor-pointer"
+            className="lg:hidden flex justify-center items-center w-9 h-9 rounded-md text-text transition-colors focus:outline-none hover:bg-card-hover cursor-pointer shrink-0"
             onClick={toggleMenu}
             aria-label="Toggle menu"
             aria-expanded={isMobileMenuOpen}

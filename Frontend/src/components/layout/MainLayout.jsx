@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState, Suspense } from "react";
 import { useRouter, usePathname } from 'next/navigation';
 import Navbar from "./Navbar";
@@ -22,7 +22,7 @@ const MainLayout = ({children}) => {
   };
 
   return (
-    <div className="app-shell flex flex-col min-h-screen">
+    <div className="app-shell flex flex-col min-h-screen w-full max-w-full overflow-x-hidden">
       
       <Navbar layout={layout} />
 
@@ -33,7 +33,7 @@ const MainLayout = ({children}) => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -15 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="w-full mx-auto flex-1 border-x border-border bg-bg-soft"
+          className="w-full max-w-full mx-auto flex-1 border-x border-border bg-bg-soft overflow-x-hidden"
         >
           <Suspense fallback={<div className="flex h-[60vh] items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-accent border-t-transparent rounded-full"></div></div>}>
             {children}

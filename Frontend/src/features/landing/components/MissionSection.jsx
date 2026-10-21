@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import contentData from "@/data/content.json";
 import { ASSETS } from "@/config/assets";
 import { ArrowRight } from "lucide-react";
@@ -32,14 +32,14 @@ const MissionSection = () => {
         {/* Glow Layer */}
         <div className="absolute -inset-1 bg-gradient-to-br from-accent/30 via-transparent to-accent/10 rounded-[3rem] blur-2xl opacity-60 group-hover:opacity-100 transition-opacity duration-700 -z-10"></div>
 
-        <div className="relative bg-card/60 backdrop-blur-2xl border border-border-soft rounded-[3rem] p-8 py-16 lg:p-20 flex flex-col lg:flex-row gap-16 lg:gap-12 items-center shadow-[0_8px_40px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_40px_rgb(0,0,0,0.3)] overflow-hidden">
+        <div className="relative bg-card/60 backdrop-blur-2xl border border-border-soft rounded-3xl sm:rounded-[2.5rem] lg:rounded-[3rem] p-6 sm:p-10 py-12 sm:py-16 lg:p-20 flex flex-col lg:flex-row gap-10 lg:gap-12 items-center shadow-[0_8px_40px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_40px_rgb(0,0,0,0.3)] overflow-hidden">
           
           {/* Decorative Corner */}
           <div className="absolute top-0 right-0 w-48 h-48 bg-accent/10 rounded-bl-[150px] -z-10 transition-transform duration-700 group-hover:scale-125"></div>
           
           {/* Left Content */}
           <div className="flex-1 lg:max-w-[55%] relative z-20 flex flex-col">
-            <div className="flex items-center gap-4 mb-8">
+            <div className="flex items-center gap-4 mb-6 sm:mb-8">
               <span className="text-accent text-[0.75rem] tracking-[0.34em] uppercase font-bold">
                 {mission.eyebrow}
               </span>
@@ -47,7 +47,7 @@ const MissionSection = () => {
               <div className="w-[4px] h-[4px] border border-accent rounded-full shadow-[0_0_8px_rgba(46,197,212,0.8)] animate-pulse"></div>
             </div>
             
-            <h2 className="font-serif text-[clamp(2.5rem,4vw,4rem)] leading-[1.1] mb-8 text-text transition-colors duration-300">
+            <h2 className="font-serif text-[clamp(2rem,4vw,4rem)] leading-[1.15] mb-6 sm:mb-8 text-text transition-colors duration-300">
               {formatHeadline(mission.headline)}
             </h2>
             

@@ -1,4 +1,4 @@
-﻿import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense } from "react";
 import HeroSection from "@/features/landing/components/HeroSection";
 
 // Lazy load below-the-fold sections to improve initial load time
@@ -11,7 +11,7 @@ const EventHero = lazy(() => import("@/features/landing/components/EventsHero"))
 
 const Home = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-bg relative transition-colors duration-300">
+    <div className="flex flex-col min-h-screen bg-bg relative transition-colors duration-300 w-full max-w-full overflow-x-hidden">
       {/* Global Background Pattern */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.03] z-0 transform-gpu"
@@ -23,7 +23,7 @@ const Home = () => {
       ></div>
       
       {/* Sections */}
-      <div className="relative z-10">
+      <div className="relative z-10 w-full max-w-full overflow-x-hidden">
         <HeroSection />
         
         <Suspense fallback={

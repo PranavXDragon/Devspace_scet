@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import contentData from "@/data/content.json";
@@ -26,21 +26,21 @@ const FaqSection = () => {
       ></div>
       
       <div className="relative z-10 w-full mx-auto max-w-[1000px]">
-        <div className="px-6 lg:px-12 pb-12 text-center flex flex-col items-center">
-          <div className="flex items-center gap-4 mb-8">
+        <div className="px-4 sm:px-6 lg:px-12 pb-10 sm:pb-12 text-center flex flex-col items-center">
+          <div className="flex items-center gap-4 mb-6 sm:mb-8">
             <span className="text-accent text-[0.75rem] tracking-[0.34em] uppercase font-bold">KNOWLEDGE_BASE</span>
             <div className="h-[2px] w-12 bg-accent shadow-[0_0_8px_rgba(46,197,212,0.8)]"></div>
             <div className="w-[4px] h-[4px] border border-accent rounded-full shadow-[0_0_8px_rgba(46,197,212,0.8)] animate-pulse"></div>
           </div>
-          <h2 className="font-sans text-[clamp(2.5rem,5vw,4.5rem)] font-bold uppercase text-transparent bg-clip-text bg-gradient-to-b from-text to-text/60 mb-6 drop-shadow-sm">
+          <h2 className="font-sans text-[clamp(2rem,5vw,4.5rem)] font-bold uppercase text-transparent bg-clip-text bg-gradient-to-b from-text to-text/60 mb-6 drop-shadow-sm">
             Frequently Asked Questions
           </h2>
-          <p className="text-text-muted text-[1rem] font-mono max-w-xl leading-relaxed">
+          <p className="text-text-muted text-[0.95rem] sm:text-[1rem] font-mono max-w-xl leading-relaxed">
             Clear answers to your most pressing questions about the Devspace Club.
           </p>
         </div>
         
-        <div className="px-6 lg:px-12">
+        <div className="px-4 sm:px-6 lg:px-12">
           {activeFaqs.length === 0 ? (
             <div className="text-center py-20 text-text-muted font-bold uppercase tracking-widest bg-card/20 backdrop-blur-md rounded-3xl border border-border-soft">
               No active entries found.

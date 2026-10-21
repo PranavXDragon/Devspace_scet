@@ -106,7 +106,7 @@ const ContactSection = () => {
               </p>
             </div>
             
-            <h2 className="font-sans text-[clamp(2.8rem,5vw,4.5rem)] font-extrabold tracking-tight text-text leading-[1.05] mb-6">
+            <h2 className="font-sans text-[clamp(2.1rem,5vw,4.5rem)] font-extrabold tracking-tight text-text leading-[1.08] mb-6">
               {titleParts.length === 2 ? (
                 <>
                   {titleParts[0]}

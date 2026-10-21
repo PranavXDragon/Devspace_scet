@@ -12,7 +12,13 @@ const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif'
 export const metadata = {
   title: 'DevSpace Club',
   description: 'DevSpace Coding Club Portal',
-}
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 import { clerkAppearance } from '@/config/clerkTheme';
 
