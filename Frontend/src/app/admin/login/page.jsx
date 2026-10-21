@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import {   useRouter,     } from 'next/navigation';
-import Link from 'next/link';;
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 import { adminService } from "@/services/adminService";
@@ -9,7 +9,6 @@ import { setLogin } from "@/context/authSlice";
 import {
   Lock,
   Mail,
-  KeyRound,
   ArrowRight,
   Loader2,
   ShieldCheck,
@@ -21,10 +20,8 @@ export default function AdminLogin() {
   const navigate = useRouter();
   const dispatch = useDispatch();
 
-  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [userEmail, setUserEmail] = useState("");
 
   const {
     register: registerLogin,
@@ -33,21 +30,18 @@ export default function AdminLogin() {
     setError: setLoginError,
   } = useForm();
 
-  const {
-    register: registerOtp,
-    handleSubmit: handleSubmitOtp,
-    formState: { errors: otpErrors },
-    setError: setOtpError,
-  } = useForm();
-
   const onLoginSubmit = async (data) => {
     setLoading(true);
     setError("");
 
     try {
-      await adminService.loginAdmin(data.email, data.password);
-      setUserEmail(data.email);
-      setStep(2);
+      const response = await adminService.loginAdmin(data.email, data.password);
+      const token = response.data?.token || response.token;
+      if (token && typeof window !== "undefined") {
+        localStorage.setItem("admin_token", token);
+      }
+      dispatch(setLogin(response.data || response));
+      navigate.push("/admin/dashboard");
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -57,33 +51,6 @@ export default function AdminLogin() {
         err.response.data.errors.forEach((e) => {
           if (e.field)
             setLoginError(e.field, { type: "server", message: e.message });
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onOtpSubmit = async (data) => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await adminService.verifyAdminOtp(userEmail, data.otp);
-      const token = response.data?.token || response.token;
-      if (token && typeof window !== "undefined") {
-        localStorage.setItem("admin_token", token);
-      }
-      dispatch(setLogin(response.data || response));
-      navigate.push("/admin/dashboard");
-    } catch (err) {
-      const msg =
-        err.response?.data?.message || "Invalid or expired OTP sequence.";
-      setError(msg);
-      if (err.response?.data?.errors?.length > 0) {
-        err.response.data.errors.forEach((e) => {
-          if (e.field)
-            setOtpError(e.field, { type: "server", message: e.message });
         });
       }
     } finally {
@@ -110,10 +77,8 @@ export default function AdminLogin() {
           <h1 className="text-2xl font-bold text-text tracking-tight">
             Devspace
           </h1>
-          <p className="mt-2 text-sm font-medium text-text-text-muted">
-            {step === 1
-              ? "Authorized personnel access only"
-              : "Multi-factor verification required"}
+          <p className="mt-2 text-sm font-medium text-text-muted">
+            Authorized personnel access only
           </p>
         </div>
         {error && (
@@ -122,137 +87,79 @@ export default function AdminLogin() {
             {error}
           </div>
         )}
-        {step === 1 ? (
-          <form
-            onSubmit={handleSubmitLogin(onLoginSubmit)}
-            className="space-y-5"
-          >
-            <div>
-              <label className="block text-sm font-semibold text-text mb-1.5">
-                Email
-              </label>
-              <div className="relative">
-                <Mail
-                  className={`absolute left-3 top-2.5 w-5 h-5 ${loginErrors.email ? "text-danger" : "text-text-text-muted"}`}
-                />
-                <input
-                  type="email"
-                  {...registerLogin("email", {
-                    required: "Email is required",
-                    pattern: {
-                      value: /^\S+@\S+$/i,
-                      message: "Invalid email format",
-                    },
-                  })}
-                  className={`w-full bg-card border ${loginErrors.email ? "border-danger focus:ring-danger/20 focus:border-danger" : "border-border focus:ring-accent/20 focus:border-accent"} text-text rounded-lg p-2.5 pl-10 text-sm focus:outline-none focus:ring-2 transition-colors shadow-sm placeholder:text-text-text-muted`}
-                  placeholder="Enter your Mail"
-                />
-              </div>
-              {loginErrors.email && (
-                <p className="mt-1 text-xs text-danger">
-                  {loginErrors.email.message}
-                </p>
-              )}
+        <form
+          onSubmit={handleSubmitLogin(onLoginSubmit)}
+          className="space-y-5"
+        >
+          <div>
+            <label className="block text-sm font-semibold text-text mb-1.5">
+              Email
+            </label>
+            <div className="relative">
+              <Mail
+                className={`absolute left-3 top-2.5 w-5 h-5 ${loginErrors.email ? "text-danger" : "text-text-muted"}`}
+              />
+              <input
+                type="email"
+                {...registerLogin("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^\S+@\S+$/i,
+                    message: "Invalid email format",
+                  },
+                })}
+                className={`w-full bg-card border ${loginErrors.email ? "border-danger focus:ring-danger/20 focus:border-danger" : "border-border focus:ring-accent/20 focus:border-accent"} text-text rounded-lg p-2.5 pl-10 text-sm focus:outline-none focus:ring-2 transition-colors shadow-sm placeholder:text-text-muted`}
+                placeholder="Enter your Mail"
+              />
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-text mb-1.5">
-                Password
-              </label>
-              <div className="relative">
-                <Lock
-                  className={`absolute left-3 top-2.5 w-5 h-5 ${loginErrors.password ? "text-danger" : "text-text-text-muted"}`}
-                />
-                <input
-                  type="password"
-                  {...registerLogin("password", {
-                    required: "Password is required",
-                  })}
-                  className={`w-full bg-card border ${loginErrors.password ? "border-danger focus:ring-danger/20 focus:border-danger" : "border-border focus:ring-accent/20 focus:border-accent"} text-text rounded-lg p-2.5 pl-10 text-sm focus:outline-none focus:ring-2 transition-colors shadow-sm placeholder:text-text-text-muted`}
-                  placeholder="********"
-                />
-              </div>
-              {loginErrors.password && (
-                <p className="mt-1 text-xs text-danger">
-                  {loginErrors.password.message}
-                </p>
-              )}
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-accent text-white py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-accent disabled:opacity-70 shadow-sm mt-2"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  Secure Login <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-        ) : (
-          <form
-            onSubmit={handleSubmitOtp(onOtpSubmit)}
-            className="space-y-6"
-            autoComplete="off"
-          >
-            {/* Hidden inputs to trick browser password managers from autofilling the OTP field */}
-            <input type="text" style={{ display: "none" }} />
-            <input type="password" style={{ display: "none" }} />
-            <div className="text-center mb-6">
-              <p className="text-sm text-text-text-muted">
-                A 6-digit code has been sent to <br />
-                <span className="font-semibold text-accent">{userEmail}</span>
+            {loginErrors.email && (
+              <p className="mt-1 text-xs text-danger">
+                {loginErrors.email.message}
               </p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-text mb-1.5">
+              Password
+            </label>
+            <div className="relative">
+              <Lock
+                className={`absolute left-3 top-2.5 w-5 h-5 ${loginErrors.password ? "text-danger" : "text-text-muted"}`}
+              />
+              <input
+                type="password"
+                {...registerLogin("password", {
+                  required: "Password is required",
+                })}
+                className={`w-full bg-card border ${loginErrors.password ? "border-danger focus:ring-danger/20 focus:border-danger" : "border-border focus:ring-accent/20 focus:border-accent"} text-text rounded-lg p-2.5 pl-10 text-sm focus:outline-none focus:ring-2 transition-colors shadow-sm placeholder:text-text-muted`}
+                placeholder="********"
+              />
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-text mb-1.5 text-center">
-                Authentication Code
-              </label>
-              <div className="relative">
-                <KeyRound
-                  className={`absolute left-4 top-3.5 w-5 h-5 ${otpErrors.otp ? "text-danger" : "text-text-text-muted"}`}
-                />
-                <input
-                  type="text"
-                  maxLength={6}
-                  autoComplete="one-time-code"
-                  {...registerOtp("otp", {
-                    required: "OTP is required",
-                    pattern: {
-                      value: /^[0-9]{6}$/,
-                      message: "OTP must be exactly 6 digits",
-                    },
-                  })}
-                  className={`w-full bg-card-hover border ${otpErrors.otp ? "border-danger focus:ring-danger/20 focus:border-danger" : "border-border focus:ring-accent/20 focus:border-accent"} text-text rounded-xl p-3 text-center text-2xl tracking-[0.5em] focus:outline-none focus:ring-2 transition-colors font-mono shadow-inner placeholder:text-text-text-muted`}
-                  placeholder="000000"
-                />
-              </div>
-              {otpErrors.otp && (
-                <p className="mt-1 text-xs text-danger text-center">
-                  {otpErrors.otp.message}
-                </p>
-              )}
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-accent text-white py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-accent disabled:opacity-70 shadow-sm"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                "Verify & Access"
-              )}
-            </button>
-          </form>
-        )}
+            {loginErrors.password && (
+              <p className="mt-1 text-xs text-danger">
+                {loginErrors.password.message}
+              </p>
+            )}
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 bg-accent text-white py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-accent disabled:opacity-70 shadow-sm mt-2 cursor-pointer"
+          >
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                Log In <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </form>
 
         {/* Back to Home Button inside the card */}
         <div className="mt-6 pt-6 border-t border-border-soft flex justify-start">
           <Link href="/"
-            className="flex items-center gap-2 text-text-text-muted hover:text-accent font-medium text-sm transition-colors"
+            className="flex items-center gap-2 text-text-muted hover:text-accent font-medium text-sm transition-colors"
           >
             <Home className="w-4 h-4" />
             Back to Home
@@ -262,4 +169,3 @@ export default function AdminLogin() {
     </div>
   );
 }
-

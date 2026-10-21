@@ -51,47 +51,21 @@ export const loginAdmin = asyncHandler(async (req, res) => {
     throw new ApiError(401, 'Invalid email or password');
   }
 
-  // Generate 6 digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const hashedOtp = await bcrypt.hash(otp, 10);
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  const token = generateAdminToken(admin.email);
 
-  const { error: tokenError } = await supabase
-    .from('tokens')
-    .insert([{
-      userId: admin.id,
-      userType: 'Admin',
-      type: 'AUTH_OTP',
-      token: hashedOtp,
-      expiresAt: expiresAt.toISOString()
-    }]);
+  const options = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    maxAge: 10 * 24 * 60 * 60 * 1000, 
+  };
 
-  if (tokenError) {
-    throw new ApiError(500, 'Error generating OTP');
-  }
-
-  // Always log OTP in server logs (accessible in Vercel Dashboard -> Function Logs)
-  console.log(`\n\n[ADMIN LOGIN OTP] OTP for ${email} is: ${otp}\n\n`);
-
-  // Send Email if SMTP is configured
-  const isSmtpConfigured = process.env.SMTP_USER && !process.env.SMTP_USER.includes('your_smtp');
-  if (isSmtpConfigured) {
-    try {
-      const emailTemplate = adminOtpEmail(otp);
-      await sendEmail({
-        to: email,
-        subject: "Devspace Admin Login OTP",
-        html: emailTemplate.html,
-        text: emailTemplate.text
-      });
-    } catch (err) {
-      console.warn("SMTP email delivery failed, check server/Vercel logs for OTP:", err.message);
-    }
-  } else {
-    console.log("[ADMIN LOGIN] SMTP not configured. Use OTP from Vercel logs or master fallback 123456.");
-  }
-
-  return res.status(200).json(new ApiResponse(200, {}, 'OTP generated and sent'));
+  return res
+    .status(200)
+    .cookie('adminToken', token, options)
+    .json(
+      new ApiResponse(200, { admin: { name: admin.name, email: admin.email }, token }, 'Logged in successfully')
+    );
 });
 
 export const verifyAdminOtp = asyncHandler(async (req, res) => {
