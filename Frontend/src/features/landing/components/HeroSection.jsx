@@ -1,20 +1,23 @@
+"use client";
 import React from "react";
-
-import Link from 'next/link';;
+import Link from 'next/link';
 import { CalendarDays, Users, Globe, ChevronRight } from "lucide-react";
 import contentData from "@/data/content.json";
 import { ASSETS } from "@/config/assets";
+import { useAuth, SignUpButton } from "@clerk/nextjs";
 
 const HeroSection = () => {
   const { hero } = contentData.landing;
-  const CustomButton = ({ to, variant, children, icon: Icon }) => {
-    const baseStyle = "group inline-flex items-center justify-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 font-sans text-[0.8rem] sm:text-[0.85rem] font-bold tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all duration-300 relative overflow-hidden w-full sm:w-auto";
+  const { userId } = useAuth();
+
+  const CustomButton = ({ to, variant, children, icon: Icon, onClick, ...rest }) => {
+    const baseStyle = "group inline-flex items-center justify-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 font-sans text-[0.8rem] sm:text-[0.85rem] font-bold tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all duration-300 relative overflow-hidden w-full sm:w-auto cursor-pointer";
     const variantStyle = variant === "solid" 
       ? "bg-accent text-bg shadow-[0_0_20px_rgba(46,197,212,0.3)] hover:shadow-[0_0_35px_rgba(46,197,212,0.5)] border-0" 
       : "bg-card/40 backdrop-blur-md text-text border border-border-soft hover:border-accent/50 hover:bg-card/60 shadow-sm hover:shadow-[0_0_20px_rgba(46,197,212,0.15)]";
       
-    return (
-      <Link href={to} className={`${baseStyle} ${variantStyle} rounded-xl whitespace-nowrap`}>
+    const innerContent = (
+      <>
         {variant === "solid" && (
           <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
         )}
@@ -23,7 +26,21 @@ const HeroSection = () => {
           <span>{children}</span>
           <ChevronRight size={18} className={`transition-transform duration-300 group-hover:translate-x-1 ${variant === "solid" ? "text-bg/80" : "text-text-muted"}`} />
         </div>
-      </Link>
+      </>
+    );
+
+    if (to) {
+      return (
+        <Link href={to} onClick={onClick} className={`${baseStyle} ${variantStyle} rounded-xl whitespace-nowrap`} {...rest}>
+          {innerContent}
+        </Link>
+      );
+    }
+
+    return (
+      <button type="button" onClick={onClick} className={`${baseStyle} ${variantStyle} rounded-xl whitespace-nowrap`} {...rest}>
+        {innerContent}
+      </button>
     );
   };
   const icons = {
@@ -70,9 +87,17 @@ const HeroSection = () => {
           <CustomButton to="/events" variant="solid" icon={CalendarDays}>
             {hero.ctaPrimary}
           </CustomButton>
-          <CustomButton to="/register" variant="outline" icon={Users}>
-            {hero.ctaSecondary}
-          </CustomButton>
+          {userId ? (
+            <CustomButton to="/student/dashboard" variant="outline" icon={Users}>
+              {hero.ctaSecondary}
+            </CustomButton>
+          ) : (
+            <SignUpButton mode="modal" fallbackRedirectUrl="/student/dashboard">
+              <CustomButton variant="outline" icon={Users}>
+                {hero.ctaSecondary}
+              </CustomButton>
+            </SignUpButton>
+          )}
         </div>
       </div>
 

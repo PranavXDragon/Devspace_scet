@@ -1,114 +1,40 @@
 "use client";
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { registrationService } from "@/services/registrationService";
-import { useDispatch } from "react-redux";
-import { setError } from "@/context/messageSlice";
-import RegistrationSuccess from "@/components/register/RegistrationSuccess";
-import PersonalDetailsForm from "@/components/register/PersonalDetailsForm";
-import AcademicDetailsForm from "@/components/register/AcademicDetailsForm";
-import VerificationDetailsForm from "@/components/register/VerificationDetailsForm";
-import contentData from "@/data/content.json";
-import { useUser, useAuth, RedirectToSignIn } from "@clerk/nextjs";
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 
-const Register = () => {
-  const { userId } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const dispatch = useDispatch();
-  const { register } = contentData;
-  const { user } = useUser();
+export default function RegisterPage() {
+  const { userId, isLoaded } = useAuth();
+  const router = useRouter();
 
-  const {
-    register: formRegister,
-    handleSubmit,
-    formState: { errors },
-    setError: setFormError,
-  } = useForm({
-    defaultValues: {
-      name: "",
-      fatherName: "",
-      email: user?.primaryEmailAddress?.emailAddress || "",
-      phone: "",
-      course: "",
-      year: "",
-      semester: "",
-      section: "",
-      set: "",
-      studentId: "",
-      transactionId: "",
-    },
-  });
-
-  const onFormSubmit = async (data) => {
-    setLoading(true);
-
-    try {
-      await registrationService.registerStudent(data);
-      setIsSuccess(true);
-    } catch (err) {
-      if (err.response?.data?.errors?.length > 0) {
-        err.response.data.errors.forEach((e) => {
-          if (e.field)
-            setFormError(e.field, { type: "server", message: e.message });
-        });
-      }
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (userId) {
+      router.replace("/student/dashboard");
+    } else {
+      router.replace("/sign-up");
     }
-  };
-
-  if (isSuccess) {
-    return <RegistrationSuccess />;
-  }
+  }, [userId, isLoaded, router]);
 
   return (
-    <>
-      {userId && (
-        <div className="min-h-screen bg-bg-soft relative font-jetbrains flex flex-col">
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.04] z-0"
+    <div className="min-h-screen bg-bg relative flex flex-col justify-center items-center px-4 overflow-hidden">
+      {/* Background Grid Pattern */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-[0.035] z-0"
         style={{
-          backgroundImage:
-            "linear-gradient(var(--color-text) 1px, transparent 1px), linear-gradient(90deg, var(--color-text) 1px, transparent 1px)",
+          backgroundImage: "linear-gradient(#2EC5D4 1px, transparent 1px), linear-gradient(90deg, #2EC5D4 1px, transparent 1px)",
           backgroundSize: "40px 40px",
         }}
-      ></div>
-
-      <div className="relative z-10 w-full  mx-auto pb-20 pt-16 px-4 md:px-12">
-        <header className="mb-12">
-          <p className="text-accent text-xs font-bold uppercase tracking-widest mb-3">
-            {register.eyebrow}
-          </p>
-          <h1 className="font-oswald text-5xl md:text-6xl font-bold uppercase text-text mb-3">
-            {register.titlePart1}{" "}
-            <span className="text-accent">{register.titlePart2}</span>
-          </h1>
-          <p className="text-text-muted text-sm font-medium">
-            {register.description}
-          </p>
-        </header>
-
-        <form
-          onSubmit={handleSubmit(onFormSubmit)}
-          className="bg-card border-4 border-text p-6 md:p-10 shadow-[8px_8px_0px_rgba(0,0,0,0.05)]"
-        >
-          <PersonalDetailsForm register={formRegister} errors={errors} />
-          <AcademicDetailsForm register={formRegister} errors={errors} />
-          <VerificationDetailsForm
-            register={formRegister}
-            errors={errors}
-            loading={loading}
-          />
-        </form>
+      />
+      <div className="relative z-10 flex flex-col items-center gap-4 text-center max-w-sm">
+        <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+        <h2 className="font-sans text-xl font-bold uppercase tracking-wider text-text">
+          Accessing Devspace
+        </h2>
+        <p className="font-mono text-xs text-text-muted uppercase tracking-widest">
+          Redirecting to your student dashboard...
+        </p>
       </div>
     </div>
-      )}
-      {!userId && (
-        <RedirectToSignIn signInUrl="/sign-in" />
-      )}
-    </>
   );
-};
-
-export default Register;
+}

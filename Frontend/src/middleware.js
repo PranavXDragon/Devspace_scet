@@ -17,6 +17,14 @@ const isStudentRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  if (req.nextUrl.pathname.startsWith('/register')) {
+    const { userId } = await auth();
+    if (userId) {
+      return NextResponse.redirect(new URL('/student/dashboard', req.url));
+    }
+    return NextResponse.redirect(new URL('/sign-up', req.url));
+  }
+
   if (isStudentRoute(req) && !isPublicRoute(req)) {
     const { userId } = await auth();
     if (!userId) {
